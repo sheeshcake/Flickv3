@@ -62,4 +62,4 @@ buck-out/
 /ios/Pods/
 /vendor/bundle/
 
-/src/providers/*
+/src/providers/KrazyDevsScrapper
