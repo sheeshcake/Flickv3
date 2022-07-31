@@ -14,12 +14,11 @@ Watch and Download Free movies and TV Shows, HD movies directly on your mobile d
 * No Ads
 * No Accounts
 * No Bullshits
+* Downloads Support(Beta Phase)
+* Subtitle Support(Beta Phase)
 
 
 #### WORKAROUNDS ####
-
-* Subtitle Support
 * Auto Play Next Video
-* Downloads Support
 * Background Download
 * Offline Mode
