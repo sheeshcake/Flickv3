@@ -1,4 +1,4 @@
-# ![Alt](https://github.com/wendale1231/Flickv3/raw/master/android/app/src/main/res/mipmap-hdpi/ic_launcher.png "Title") Flick
+# ![Alt](https://github.com/sheeshcake/Flickv3/blob/766214ad550ab82a226faa6c8db538c21899fc58/android/app/src/main/res/mipmap-hdpi/ic_launcher.png "Title") Flick
 Flick (v3) is a Free Movie Streaming and Download app, no ads, no accounts, no bullshits, just free!.
 
 Watch and Download Free movies and TV Shows, HD movies directly on your mobile device.
