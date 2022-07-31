@@ -1,4 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
+import AsyncStorage from '@react-native-community/async-storage'
+
 
 const initialState = {
   myList: [],
@@ -21,7 +23,14 @@ export const profileSlice = createSlice({
     },
     addToContinueWatching: (state, action) => {
     },
-    addToDownloads: (state, action) => {
+    addToDownloads: async (state, action) => {
+      state.downloads.push(action.payload)
+      await AsyncStorage.setItem("userProfile", JSON.stringify(state))
+    },
+    updateDownloads: async (state, action) => {
+      const index = state.downloads.findIndex(data => data.id === action.payload.id)
+      state.downloads[index] = action.payload
+      await AsyncStorage.setItem("userProfile", JSON.stringify(state))
     },
     removeToDownloads: (state, action) => {
     }
@@ -29,7 +38,7 @@ export const profileSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const { 
+export const {
   addToList,
   removeToList,
   addToContinueWatching,

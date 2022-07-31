@@ -1,6 +1,5 @@
 import { View, Text, ActivityIndicator } from 'react-native'
 import React, { useState, useEffect, useRef } from 'react'
-import Video from 'react-native-video';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import Slider from '@react-native-community/slider'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -11,6 +10,8 @@ import Orientation from 'react-native-orientation-locker';
 const Controls = ({
     hide,
     title,
+    link,
+    movie,
     playing,
     currentPosition,
     duration,
@@ -23,8 +24,12 @@ const Controls = ({
     videoStatus,
     onHide,
     onPause,
-    onPlay
+    onPlay,
+    onDownload
 }) => {
+    // const {
+    //     useStartDownload
+    // } = helpers
     const navigation = useNavigation();
     const [time, setTime] = useState();
     const [status, setStatus] = useState(status);
@@ -91,7 +96,7 @@ const Controls = ({
                 </Text>
                 <TouchableOpacity
                     onPress={() => {
-                        console.log('forward')
+                        link && onDownload()
                     }}
                     style={{
                         padding: 10,
@@ -107,28 +112,37 @@ const Controls = ({
                 </TouchableOpacity>
             </View>
             <TouchableOpacity
-                style={{
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                }}
                 activeOpacity={1}
                 onPress={() => {
                     onHide()
                 }}
+                style={{
+                    height: sizes.height * 0.2,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}
             >
-                {
-                    status == "loading" ? (
-                        <ActivityIndicator
-                            animating={isBuffering}
-                            color={colors.red}
-                            size="large"
-                        />
-                    ) : status == "error" ? (
-                        <Text style={{ color: colors.white, fontSize: 20, fontWeight: 'bold' }}>No Video Available :(</Text>
-                    ) : (
-                        <></>
-                    )
-                }
+                <View
+                    style={{
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}
+                >
+                    {
+                        status == "loading" ? (
+                            <ActivityIndicator
+                                animating={isBuffering}
+                                color={colors.red}
+                                size="large"
+                            />
+                        ) : status == "error" ? (
+                            <Text style={{ color: colors.white, fontSize: 20, fontWeight: 'bold' }}>No Video Available :(</Text>
+                        ) : (
+                            // ADD more Controls HERE
+                            <></>
+                        )
+                    }
+                </View>
             </TouchableOpacity>
             <View
                 style={{
@@ -139,6 +153,7 @@ const Controls = ({
                     justifyContent: 'space-between',
                     backgroundColor: colors.transparentBlack,
                     alignItems: 'center',
+                    marginBottom: 20,
                 }}
             >
                 <TouchableOpacity

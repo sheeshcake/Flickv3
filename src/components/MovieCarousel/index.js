@@ -67,12 +67,17 @@ const MovieCarousel = ({ movies, navigation }) => {
 
 
                     return (
-                        <View
+                        <TouchableOpacity
                             style={{
                                 width: ITEM_SIZE,
                                 height: ITEM_SIZE * 1.5
                             }}
                             key={item.id + "-carousel"}
+                            onPress={() => {
+                                navigation.push('Details', {
+                                    movie: item,
+                                })
+                            }}
                         >
                             <Animated.View
                                 style={{
@@ -93,7 +98,7 @@ const MovieCarousel = ({ movies, navigation }) => {
                                     }}
                                 />
                             </Animated.View>
-                        </View>
+                        </TouchableOpacity>
                     );
                 }}
             />
@@ -116,14 +121,14 @@ const MovieCarousel = ({ movies, navigation }) => {
                 <View
                     style={{
                         flexDirection: 'row',
-                        justifyContent: 'space-between',
+                        justifyContent: 'center',
                         alignItems: 'center',
                         paddingHorizontal: SPACING,
                         width: sizes.width * 0.7,
                         paddingVertical: 5,
                     }}
                 >
-                    <TouchableOpacity
+                    {/* <TouchableOpacity
                         onPress={() => {
                             console.log('heart')
                         }}
@@ -139,7 +144,7 @@ const MovieCarousel = ({ movies, navigation }) => {
                             color={colors.white}
                         />
                         <Text>My List</Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                     <TouchableOpacity
                         onPress={() => {
                             navigation.push('Details', {
@@ -171,7 +176,7 @@ const MovieCarousel = ({ movies, navigation }) => {
                             Play
                         </Text>
                     </TouchableOpacity>
-                    <TouchableOpacity
+                    {/* <TouchableOpacity
                         onPress={() => {
                             console.log('profile')
                         }}
@@ -187,7 +192,7 @@ const MovieCarousel = ({ movies, navigation }) => {
                             color={colors.white}
                         />
                         <Text>Details</Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                 </View>
             </View>
 

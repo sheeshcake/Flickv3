@@ -1,4 +1,4 @@
-import { View, Text, Image, ActivityIndicator, ScrollView } from 'react-native'
+import { View, Text, Image, ActivityIndicator, PermissionsAndroid, ScrollView } from 'react-native'
 import React, { useEffect } from 'react'
 import { colors } from '~/constants/theme'
 import AsyncStorage from '@react-native-community/async-storage'
@@ -55,8 +55,23 @@ const Splash = ({ navigation }) => {
         }
     }
 
+    const loadPermission = async () => {
+        try {
+            // add read, write permissions
+            await PermissionsAndroid.request(
+                PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+            );
+            await PermissionsAndroid.request(
+                PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+            );
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     useEffect(() => {
         loadData()
+        loadPermission()
     }, [])
 
     return (

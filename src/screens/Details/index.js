@@ -1,4 +1,4 @@
-import { View, Text, Image } from 'react-native'
+import { View, Text, Image, PermissionsAndroid } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { colors, sizes } from '~/constants/theme'
 import MediaPlayer from '~/components/MediaPlayer'
@@ -6,6 +6,10 @@ import { ScrollView } from 'react-native-gesture-handler'
 import TheFlixProvider from "~/providers/KrazyDevsScrapper/TheFlixProvider";
 import TvDetails from '~/components/TvDetails'
 import TvEpisodes from '~/components/TvEpisodes'
+const axios = require("axios");
+import {
+    startDownload
+} from "~/helpers/useDownload"
 
 
 const Details = ({ navigation, route }) => {
@@ -14,35 +18,77 @@ const Details = ({ navigation, route }) => {
     const [status, setStatus] = useState('loading');
     const [seasonData, setSeasonData] = useState([]);
     const [tvLink, setTvLink] = useState("");
-    
+    const [subtitle, setSubtitle] = useState("")
+
+
+    const searchSubs = async () => {
+        const search = await fetch(`https://api.opensubtitles.com/api/v1/subtitles?tmdb_id=${movie.id}`, {
+            method: "GET",
+            headers: {
+                Accept : "application/json",
+                "Api-key": "rPeiuYj1TQlmdksY0NMS89ghwmFv7s0y"
+            }
+        })
+        const r_search = await search.json()
+        const file_id = r_search.data.find(x => 
+            x.type == "subtitle" && x.attributes.language == "en"
+        )
+        const formData = new FormData()
+        formData.append("file_id", file_id.attributes.files[0].file_id)
+        const subtitle = await fetch("https://api.opensubtitles.com/api/v1/download", {
+            method: "POST",
+            headers: {
+                Accept : "application/json",
+                "Api-key": "rPeiuYj1TQlmdksY0NMS89ghwmFv7s0y"
+            },
+            body: formData
+        }).catch(err => console.log(err))
+        const r_subtitle = await subtitle.json()
+        console.log(r_subtitle.link)
+        setSubtitle(r_subtitle.link)
+    }
+
+
+    function onDownload () {
+        console.log(status)
+        startDownload(movie, video)
+        if(status){
+            alert("Download has Started!");
+        }else{
+            alert("Error Downloading.. :(")
+        }
+    }
+
 
     const getVideo = async () => {
         setStatus('loading');
-        try{
+        try {
             const video = await TheFlixProvider.loadFlicks(movie.link, movie.type);
+            console.log(video);
             setVideo(video.url);
             setStatus('success');
-        }catch(error){
+        } catch (error) {
             setStatus('error');
         }
     }
 
     const getTv = async () => {
         setStatus('loading');
-        if(!tvLink.includes('undefined') && !tvLink.includes('null')){
-            try{
+        if (!tvLink.includes('undefined') && !tvLink.includes('null')) {
+            try {
                 const tv = await TheFlixProvider.loadFlicks(tvLink, movie.type);
                 setVideo(tv.url);
                 setStatus('success');
-            }catch(error){
+            } catch (error) {
                 setStatus('error');
             }
         }
     }
 
     useEffect(() => {
-        movie.type == "movie" ? getVideo()  : getTv();
-    } , [tvLink])
+        movie.type == "movie" ? getVideo() : getTv();
+        searchSubs()
+    }, [tvLink])
 
 
     return (
@@ -57,10 +103,13 @@ const Details = ({ navigation, route }) => {
             <MediaPlayer
                 title={movie.title}
                 video={video}
+                movie={movie}
                 status={status}
                 setStatus={(d) => setStatus(d)}
                 imageUrl={movie.image}
                 navigation={navigation}
+                subtitle={subtitle}
+                onDownload={() => onDownload()}
             />
             <ScrollView
                 showsVerticalScrollIndicator={false}

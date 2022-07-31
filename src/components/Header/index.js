@@ -3,7 +3,9 @@ import React from 'react'
 import { colors, sizes } from '~/constants/theme'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const Header = () => {
+const Header = ({
+    onPressCredits
+}) => {
   return (
     <View
         style={{
@@ -37,9 +39,7 @@ const Header = () => {
             }}
         >
             <TouchableOpacity
-                onPress={() => {
-                    console.log('profile')
-                }}
+                onPress={onPressCredits}
                 style={{
                     padding: 10,
                 }}

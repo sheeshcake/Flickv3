@@ -1,6 +1,7 @@
 import { View, Text, Image, StatusBar, BackHandler } from 'react-native'
 import React from 'react'
 import Video from 'react-native-video'
+import { TextTrackType } from 'react-native-video'
 import { colors, sizes } from '~/constants/theme'
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import Orientation from 'react-native-orientation-locker';
@@ -11,8 +12,11 @@ const MediaPlayer = ({
     video,
     status,
     title,
+    movie,
     imageUrl,
     setStatus,
+    onDownload,
+    subtitle
 }) => {
     const navigation = useNavigation();
     const [controlsHide, setControlsHide] = React.useState(false);
@@ -124,7 +128,14 @@ const MediaPlayer = ({
                 onSeek={({ currentTime: time }) => {
                     setCurrentTime(time)
                 }}
+                selectedTextTrack={{type: 'language', value: 'en'}}
                 onProgress={handleProgress}
+                textTracks={[{
+                    title: title,
+                    language: 'en',
+                    type: TextTrackType.SRT,
+                    uri: subtitle
+                }]}
             />
             <Controls
                 title={title}
@@ -132,15 +143,18 @@ const MediaPlayer = ({
                 onHide={() => setControlsHide(!controlsHide)}
                 onPause={onPause}
                 onPlay={onPlay}
+                movie={movie}
                 resize={resize}
                 playing={playing}
                 currentPosition={currentPosition}
                 duration={duration}
                 onSeek={onSeek}
+                link={video ? true : false}
                 fullscreen={fullscreen}
                 onFullscreen={onFullscreen}
                 onResize={onResize}
                 videoStatus={status}
+                onDownload={onDownload}
             />
         </View>
     )

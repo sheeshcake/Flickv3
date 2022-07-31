@@ -8,9 +8,10 @@ import MovieList from '~/components/MovieList';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-community/async-storage';
+import CreditsModal from '~/components/CreditsModal';
 
 
-const Home = ({isFocused, navigation}) => {
+const Home = ({ isFocused, navigation }) => {
     const {
         movies,
         popular_movie,
@@ -20,6 +21,9 @@ const Home = ({isFocused, navigation}) => {
         romance_movie,
         tv_show,
     } = useSelector(state => state.home)
+    const [openCredits, setOpenCredits] = useState(false)
+
+    const profile_data = useSelector(state => state.profile)
 
     const clearData = async () => {
         try {
@@ -31,6 +35,7 @@ const Home = ({isFocused, navigation}) => {
 
     useEffect(() => {
         // clearData();
+        console.log(profile_data)
     }, [])
 
     return (
@@ -41,22 +46,29 @@ const Home = ({isFocused, navigation}) => {
                 backgroundColor: colors.black,
             }}
         >
-            <Header />
+            <Header
+                onPressCredits={() => setOpenCredits(!openCredits)}
+            />
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 style={{
                     marginTop: sizes.width * 0.15,
                 }}
             >
-                <MovieCarousel movies={movies} navigation={navigation}/>
-                <MovieList title="Top Rated" movies={popular_movie} navigation={navigation}/>
-                <MovieList title="Horror" movies={horror_movie} navigation={navigation}/>
-                <MovieList title="Action" movies={action_movie} navigation={navigation}/>
-                <MovieList title="Comedy" movies={comedy_movie} navigation={navigation}/>
-                <MovieList title="Romance" movies={romance_movie} navigation={navigation}/>
-                <MovieList title="TV Show" movies={tv_show} navigation={navigation}/>
+                <MovieCarousel movies={movies} navigation={navigation} />
+                <MovieList title="Top Rated" movies={popular_movie} navigation={navigation} />
+                <MovieList title="Horror" movies={horror_movie} navigation={navigation} />
+                <MovieList title="Action" movies={action_movie} navigation={navigation} />
+                <MovieList title="Comedy" movies={comedy_movie} navigation={navigation} />
+                <MovieList title="Romance" movies={romance_movie} navigation={navigation} />
+                <MovieList title="TV Show" movies={tv_show} navigation={navigation} />
             </ScrollView>
-
+            <CreditsModal
+                isOpen={openCredits}
+                onClose={() => {
+                    setOpenCredits(!openCredits)
+                }}
+            />
         </SafeAreaView>
     )
 }
