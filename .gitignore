@@ -63,3 +63,4 @@ buck-out/
 /vendor/bundle/
 
 /src/providers/KrazyDevsScrapper
+src/providers/KrazyDevsScrapper
