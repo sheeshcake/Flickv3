@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
 
 import Home from "~/screens/Home";
 import Search from "~/screens/Search";
+import Settings from "~/screens/Settings";
 import { colors, sizes } from '~/constants/theme'
 
 
@@ -58,18 +59,19 @@ const Tabs = () => {
                     )
                 }}
             />
-            {/* <Tab.Screen
-                name="Profile"
-                component={Home}
+            <Tab.Screen
+                name="Settings"
+                component={Settings}
                 options={{
                     tabBarIcon: ({ focused }) => (
-                        <TabIcon
-                            focused={focused}
-                            icon={icons.profile}
+                        <Icon
+                            name="cog"
+                            size={sizes.width * 0.07}
+                            color={focused ? colors.red : colors.white}
                         />
                     )
                 }}
-            /> */}
+            />
         </Tab.Navigator>
     )
 }

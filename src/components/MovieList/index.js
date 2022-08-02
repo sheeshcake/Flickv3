@@ -4,7 +4,7 @@ import { sizes, colors } from '~/constants/theme'
 
 
 
-const MovieList = ({title, movies, navigation }) => {
+const MovieList = ({ title, movies, navigation }) => {
     return (
         <View
             style={{
@@ -42,6 +42,7 @@ const MovieList = ({title, movies, navigation }) => {
                             style={{
                                 justifyContent: 'center',
                             }}
+                            key={movie.id + title + "touch"}
                             activeOpacity={0.6}
                             onPress={() => {
                                 navigation.push('Details', {
@@ -49,6 +50,30 @@ const MovieList = ({title, movies, navigation }) => {
                                 })
                             }}
                         >
+                            {
+                                movie?.quality && (
+                                    <View
+                                        style={{
+                                            position: 'absolute',
+                                            top: 5,
+                                            right: 5,
+                                            zIndex: 100,
+                                            maxHeight: 20,
+                                            padding: 5,
+                                            borderRadius: 5,
+                                            backgroundColor: movie?.quality === 'HD' ? colors.green : colors.red,
+                                        }}
+                                    >
+                                        <Text style={{
+                                            fontSize: 10,
+                                            color: colors.white
+                                        }}
+                                        >
+                                            {movie?.quality}
+                                        </Text>
+                                    </View>
+                                )
+                            }
                             <Image
                                 source={{
                                     uri: movie.image,

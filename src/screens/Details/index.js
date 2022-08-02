@@ -4,67 +4,53 @@ import { colors, sizes } from '~/constants/theme'
 import MediaPlayer from '~/components/MediaPlayer'
 import { ScrollView } from 'react-native-gesture-handler'
 import TheFlixProvider from "~/providers/KrazyDevsScrapper/TheFlixProvider";
+import SolarMovieProvider from "~/providers/KrazyDevsScrapper/SolarMovieProvider";
 import TvDetails from '~/components/TvDetails'
 import TvEpisodes from '~/components/TvEpisodes'
-const axios = require("axios");
+import solarmovie from '~/api/solarmovie'
 import {
     startDownload
 } from "~/helpers/useDownload"
+import { useSelector } from 'react-redux'
 
 
 const Details = ({ navigation, route }) => {
+    const {
+        provider,
+        open_subtitle_token
+    } = useSelector(state => state.profile)
     const { movie } = route.params;
     const [video, setVideo] = useState(null);
     const [status, setStatus] = useState('loading');
     const [seasonData, setSeasonData] = useState([]);
+    const [episodeData, setEpisodeData] = useState([]);
+    const [selectedSeason, setSelectedSeason] = useState([]);
+    const [selectedEpisode, setSelectedEpisode] = useState([]);
     const [tvLink, setTvLink] = useState("");
     const [subtitle, setSubtitle] = useState("")
+    const [tvSelected, setTVSelected] = useState({
+        season: 1,
+        episode: 1
+    });
 
 
-    const searchSubs = async () => {
-        const search = await fetch(`https://api.opensubtitles.com/api/v1/subtitles?tmdb_id=${movie.id}`, {
-            method: "GET",
-            headers: {
-                Accept : "application/json",
-                "Api-key": "rPeiuYj1TQlmdksY0NMS89ghwmFv7s0y"
-            }
-        })
-        const r_search = await search.json()
-        const file_id = r_search.data.find(x => 
-            x.type == "subtitle" && x.attributes.language == "en"
-        )
-        const formData = new FormData()
-        formData.append("file_id", file_id.attributes.files[0].file_id)
-        const subtitle = await fetch("https://api.opensubtitles.com/api/v1/download", {
-            method: "POST",
-            headers: {
-                Accept : "application/json",
-                "Api-key": "rPeiuYj1TQlmdksY0NMS89ghwmFv7s0y"
-            },
-            body: formData
-        }).catch(err => console.log(err))
-        const r_subtitle = await subtitle.json()
-        console.log(r_subtitle.link)
-        setSubtitle(r_subtitle.link)
-    }
 
-
-    function onDownload () {
+    function onDownload() {
         console.log(status)
         startDownload(movie, video)
-        if(status){
+        if (status) {
             alert("Download has Started!");
-        }else{
+        } else {
             alert("Error Downloading.. :(")
         }
     }
 
+    ///////////   THE FLIX FUNCTIONS //////////////////
 
     const getVideo = async () => {
         setStatus('loading');
         try {
             const video = await TheFlixProvider.loadFlicks(movie.link, movie.type);
-            console.log(video);
             setVideo(video.url);
             setStatus('success');
         } catch (error) {
@@ -85,9 +71,80 @@ const Details = ({ navigation, route }) => {
         }
     }
 
+
+    ////////////// SOLAR FUNCTIONS ////////////////////////
+
+    const getVideoSolar = async () => {
+        setStatus('loading');
+        console.log(movie.link)
+        try {
+            const video = await SolarMovieProvider.loadFlicks(movie.link, "movie");
+            console.log(video);
+            setVideo(video.url)
+            setSubtitle(video.subs[0].url);
+            setStatus('success');
+        } catch (error) {
+            setStatus('error');
+        }
+    }
+
+    const getSeason = async () => {
+        setStatus('loading');
+        try {
+            const season = await solarmovie.get_tv_details(movie.id);
+            setSeasonData(season?.seasons)
+            setSelectedSeason(season?.seasons[0])
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    const getEpisodes = async () => {
+        setStatus('loading');
+        try {
+            const episodes = await solarmovie.get_episodes(movie.id, selectedSeason.id);
+            setEpisodeData(episodes)
+            setSelectedEpisode(episodes[0])
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    const getEpisodeLink = async () => {
+        setStatus('loading');
+        try {
+            console.log(selectedEpisode)
+            const episode = await SolarMovieProvider.loadFlicks(movie.link, "tv", selectedEpisode.id);
+            if (episode) {
+                setVideo(episode?.url)
+                setSubtitle(episode?.subs[0]?.url);
+                setStatus('success');
+            }
+
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
     useEffect(() => {
-        movie.type == "movie" ? getVideo() : getTv();
-        searchSubs()
+        getEpisodes();
+    }, [selectedSeason])
+
+    useEffect(() => {
+        getEpisodeLink();
+    }, [selectedEpisode])
+
+    useEffect(() => {
+        // if(provider === "theflix"){
+        //     movie.type == "movie" ? getVideo() : getTv();
+        // }else{
+            movie.type == "movie" ? getVideoSolar() : getSeason();
+        // }
+        // 
+        // getVideoSolar();
+        
+        // getTVSolar();
+        // open_subtitle_token != '' && searchSubs()
     }, [tvLink])
 
 
@@ -160,7 +217,7 @@ const Details = ({ navigation, route }) => {
                                     color: colors.light,
                                 }}
                             >
-                                {movie.description}
+                                {movie?.description || "No Description"}
                             </Text>
                         </View>
                     </View>
@@ -168,13 +225,14 @@ const Details = ({ navigation, route }) => {
                         movie.type === "tv" && (
                             <View>
                                 <TvDetails
-                                    setSeasonData={(data) => setSeasonData(data)}
-                                    tv={movie}
+                                    setSelectedSeason={setSelectedSeason}
+                                    selectedSeason={selectedSeason}
+                                    seasonData={seasonData}
                                 />
                                 <TvEpisodes
-                                    tv={movie}
-                                    seasonData={seasonData}
-                                    setVideo={(video) => setTvLink(video)}
+                                    setSelectedEpisode={setSelectedEpisode}
+                                    selectedEpisode={selectedEpisode}
+                                    episodeData={episodeData}
                                 />
                             </View>
                         )

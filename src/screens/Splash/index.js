@@ -12,7 +12,12 @@ import {
     setRomanceMovie,
     setTvShow,
 } from '~/redux/homeSlice'
+
+import {
+    getprofileData,
+} from '~/redux/profileSlice'
 import tmdb from '~/api/tmdb'
+import solarmovie from '~/api/solarmovie'
 
 const Splash = ({ navigation }) => {
     const dispatch = useDispatch()
@@ -28,6 +33,17 @@ const Splash = ({ navigation }) => {
         getData();
     }
 
+    const loadData_solar = async () => {
+        dispatch(getprofileData(await AsyncStorage.getItem('userProfile') || []));
+        dispatch(setMovies(await solarmovie.hero()));
+        dispatch(setPopularMovie(await solarmovie.popular_movie()));
+        dispatch(setHorrorMovie(await solarmovie.horror_movie()));
+        dispatch(setActionMovie(await solarmovie.action_movie()));
+        dispatch(setComedyMovie(await solarmovie.comedy_movie()));
+        dispatch(setRomanceMovie(await solarmovie.romance_movie()));
+        dispatch(setTvShow(await solarmovie.popular_tv()));
+        getData();
+    }
 
     const getData = async () => {
         try {
@@ -69,8 +85,12 @@ const Splash = ({ navigation }) => {
         }
     }
 
+    const testApi = async () => {
+        console.log(await solarmovie.hero())
+    }
     useEffect(() => {
-        loadData()
+        // loadData()
+        loadData_solar()
         loadPermission()
     }, [])
 

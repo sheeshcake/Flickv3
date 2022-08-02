@@ -7,6 +7,7 @@ import {
     Text,
 } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import { color } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, sizes } from '~/constants/theme';
 
@@ -57,7 +58,7 @@ const MovieCarousel = ({ movies, navigation }) => {
                         index * ITEM_SIZE,
                     ];
                     if (!item.image) {
-                        return <View style={{ width: EMPTY_ITEM_SIZE }} />;
+                        return <View key={'empty' + item.key + index} style={{ width: EMPTY_ITEM_SIZE }} />;
                     }
                     const scale = scrollX.interpolate({
                         inputRange,
@@ -72,7 +73,7 @@ const MovieCarousel = ({ movies, navigation }) => {
                                 width: ITEM_SIZE,
                                 height: ITEM_SIZE * 1.5
                             }}
-                            key={item.id + "-carousel"}
+                            key={item.id + index + item.name + "-carousel"}
                             onPress={() => {
                                 navigation.push('Details', {
                                     movie: item,
@@ -86,7 +87,33 @@ const MovieCarousel = ({ movies, navigation }) => {
                                     alignItems: 'center',
                                     transform: [{ scale }],
                                 }}
+                                key={item.id + index + "-animatedview"}
                             >
+                                {
+                                    item?.quality && (
+                                        <View
+                                            style={{
+                                                position: 'absolute',
+                                                top: 5,
+                                                right: -5,
+                                                zIndex: 100,
+                                                maxHeight: 20,
+                                                padding: 5,
+                                                borderRadius: 5,
+                                                backgroundColor: item?.quality === 'HD' ? colors.green : colors.red,
+                                            }}
+                                            key={item.id + "-view"}
+                                        >
+                                            <Text style={{
+                                                fontSize: 10,
+                                                color: colors.white
+                                            }}
+                                            >
+                                                {item?.quality}
+                                            </Text>
+                                        </View>
+                                    )
+                                }
                                 <Image
                                     source={{
                                         uri: item.image,
@@ -96,6 +123,7 @@ const MovieCarousel = ({ movies, navigation }) => {
                                         height: ITEM_SIZE * 1.5,
                                         width: ITEM_SIZE
                                     }}
+                                    key={item.id + "-carousel-image"}
                                 />
                             </Animated.View>
                         </TouchableOpacity>

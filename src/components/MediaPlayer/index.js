@@ -133,7 +133,7 @@ const MediaPlayer = ({
                 textTracks={[{
                     title: title,
                     language: 'en',
-                    type: TextTrackType.SRT,
+                    type: subtitle.split(".").pop() == "srt" ?TextTrackType.SRT : TextTrackType.VTT,
                     uri: subtitle
                 }]}
             />

@@ -1,26 +1,13 @@
 import React from 'react'
 import { View, TouchableOpacity, Image, Text } from 'react-native';
 import tmdb from '~/api/tmdb'
+import solarmovie from '../../api/solarmovie';
 import { colors } from '~/constants/theme';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 
-const TvEpisodes = ({ tv, seasonData, setVideo }) => {
+const TvEpisodes = ({ episodeData, setSelectedEpisode, selectedEpisode}) => {
 
-    const [episodes, setEpisodes] = React.useState([])
-    const [selectedEpisode, setSelectedEpisode] = React.useState();
-
-    const getEpisodes = async () => {
-        const episodes = await tmdb.get_episodes(tv.id, tv.title, seasonData.season_number);
-        setEpisodes(episodes)
-        setSelectedEpisode(episodes[0])
-        const video = await tmdb.get_episode_link(tv.id, tv.title, seasonData.season_number, episodes[0].episode_number || 1);
-        setVideo(video.link)
-    }
-
-    React.useEffect(() => {
-        getEpisodes()
-    }, [seasonData, tv])
 
     return (
         <View
@@ -32,12 +19,11 @@ const TvEpisodes = ({ tv, seasonData, setVideo }) => {
             }}
         >
             {
-                episodes?.map(episode => (
+                episodeData?.map(episode => (
                     <TouchableOpacity
                         key={episode.id}
                         onPress={() => {
                             setSelectedEpisode(episode)
-                            setVideo(episode.link)
                         }}>
                         <View
                             style={{
@@ -49,13 +35,14 @@ const TvEpisodes = ({ tv, seasonData, setVideo }) => {
                             }}
                         >
                             <Image
-                                source={{ uri: episode.image }}
+                                source={episode?.image ? { uri: episode.image } : require('~/assets/logo/logo.png')}
                                 style={{
                                     width: 100,
                                     height: 100,
                                     borderRadius: 10,
                                     marginHorizontal: 10,
                                 }}
+                                resizeMode="contain"
                             />
                             <View
                                 style={{
@@ -98,7 +85,6 @@ const TvEpisodes = ({ tv, seasonData, setVideo }) => {
                                     />
                                 </View>
                             }
-
                         </View>
                     </TouchableOpacity>
                 ))

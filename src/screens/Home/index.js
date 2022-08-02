@@ -56,12 +56,12 @@ const Home = ({ isFocused, navigation }) => {
                 }}
             >
                 <MovieCarousel movies={movies} navigation={navigation} />
-                <MovieList title="Top Rated" movies={popular_movie} navigation={navigation} />
-                <MovieList title="Horror" movies={horror_movie} navigation={navigation} />
-                <MovieList title="Action" movies={action_movie} navigation={navigation} />
-                <MovieList title="Comedy" movies={comedy_movie} navigation={navigation} />
-                <MovieList title="Romance" movies={romance_movie} navigation={navigation} />
-                <MovieList title="TV Show" movies={tv_show} navigation={navigation} />
+                <MovieList key={1} title="Top Rated" movies={popular_movie} navigation={navigation} />
+                <MovieList key={2} title="Horror" movies={horror_movie} navigation={navigation} />
+                <MovieList key={3}  title="Action" movies={action_movie} navigation={navigation} />
+                <MovieList key={4}  title="Comedy" movies={comedy_movie} navigation={navigation} />
+                <MovieList key={5}  title="Romance" movies={romance_movie} navigation={navigation} />
+                <MovieList key={6}  title="TV Show" movies={tv_show} navigation={navigation} />
             </ScrollView>
             <CreditsModal
                 isOpen={openCredits}
