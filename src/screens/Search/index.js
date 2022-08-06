@@ -16,6 +16,9 @@ const Search = ({navigation}) => {
     popular_movie,
     tv_show
   } = useSelector(state => state.home)
+  const {
+    provider
+  } = useSelector(state => state.profile)
   const [search, setSearch] = React.useState('');
   const [movies, setMovies] = React.useState([]);
   const [tvShows, setTvShows] = React.useState([]);
@@ -43,10 +46,9 @@ const Search = ({navigation}) => {
     setMovies(await solarmovie.search_movie(search));
     setTvShows(await solarmovie.search_tv(search));
   }
-  const handler = useCallback(debounce(get_search_solar , 2000), [search]);
+  const handler = useCallback(debounce(provider == "theflix" ? get_search: get_search_solar , 2000), [search]);
   useEffect(() => {
-    // get_datas();
-    get_datas_solar();
+    provider == "theflix" ? get_datas() : get_datas_solar();
   }, []);
 
   useEffect(() => {

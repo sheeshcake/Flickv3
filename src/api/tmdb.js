@@ -10,7 +10,7 @@ const hero = async () => {
             id: item.id,
             type: 'movie',
             title: item.title,
-            link: `/movie/${item.id}-${String(item.title)
+            link: `movie/${item.id}-${String(item.title)
                 .toLowerCase()
                 .replace(/\W/g, "-")
                 .replace(/-$/g, "")
@@ -56,7 +56,7 @@ const popular_movie = async () => {
             id: item.id,
             type: 'movie',
             title: item.title,
-            link: `/movie/${item.id}-${String(item.title)
+            link: `movie/${item.id}-${String(item.title)
                 .toLowerCase()
                 .replace(/\W/g, "-")
                 .replace(/-$/g, "")
@@ -81,7 +81,7 @@ const horror_movie = async () => {
             id: item.id,
             type: 'movie',
             title: item.title,
-            link: `/movie/${item.id}-${String(item.title)
+            link: `movie/${item.id}-${String(item.title)
                 .toLowerCase()
                 .replace(/\W/g, "-")
                 .replace(/-$/g, "")
@@ -105,7 +105,7 @@ const action_movie = async () => {
             id: item.id,
             type: 'movie',
             title: item.title,
-            link: `/movie/${item.id}-${String(item.title)
+            link: `movie/${item.id}-${String(item.title)
                 .toLowerCase()
                 .replace(/\W/g, "-")
                 .replace(/-$/g, "")
@@ -129,7 +129,7 @@ const comedy_movie = async () => {
             id: item.id,
             type: 'movie',
             title: item.title,
-            link: `/movie/${item.id}-${String(item.title)
+            link: `movie/${item.id}-${String(item.title)
                 .toLowerCase()
                 .replace(/\W/g, "-")
                 .replace(/-$/g, "")
@@ -153,7 +153,7 @@ const romance_movie = async () => {
             id: item.id,
             type: 'movie',
             title: item.title,
-            link: `/movie/${item.id}-${String(item.title)
+            link: `movie/${item.id}-${String(item.title)
                 .toLowerCase()
                 .replace(/\W/g, "-")
                 .replace(/-$/g, "")
@@ -179,7 +179,7 @@ const get_episodes = async (id ,name ,season) => {
             type: 'tv',
             title: item.name,
             overview: item.overview,
-            link: `/tv-show/${id}-${String(name)
+            link: `tv-show/${id}-${String(name)
                 .toLowerCase()
                 .replace(/\W/g, "-")
                 .replace(/-$/g, "")
@@ -202,23 +202,11 @@ const get_episode_link = async (id, name, season, episode) => {
 }
 
 
-const get_tv_details = async (id, season, episode) => {
+const get_seasons = async (id) => {
     const tv_details = await fetch(`${tmdb_api}tv/${id}?api_key=${api_key}&language=${'en-US'}`)
     const tvdata = await tv_details.json()
     let tv_details_data = {
-        id: tvdata.id,
-        title: tvdata.name,
-        link: `/tv-show/${tvdata.id}-${String(tvdata.name)
-            .toLowerCase()
-            .replace(/\W/g, "-")
-            .replace(/-$/g, "")
-            .replace(/--+/g, "-")}/season-${season}/episode-${episode}`,
-        image: `https://image.tmdb.org/t/p/w500/${tvdata.poster_path}`,
-        description: tvdata.overview,
-        release: tvdata.first_air_date,
-        rating: tvdata.vote_average,
-        duration: tvdata.episode_run_time,
-        director: tvdata.created_by,
+        overview: tvdata.overview,
         seasons: tvdata.seasons,
     }
     return tv_details_data;
@@ -258,7 +246,7 @@ const search_movie = async (search) => {
             id: item.id,
             type: 'movie',
             title: item.title,
-            link: `/movie/${item.id}-${String(item.title)
+            link: `movie/${item.id}-${String(item.title)
                 .toLowerCase()
                 .replace(/\W/g, "-")
                 .replace(/-$/g, "")
@@ -308,7 +296,7 @@ export default {
     comedy_movie,
     romance_movie,
     popular_tv,
-    get_tv_details,
+    get_seasons,
     get_episodes,
     get_episode_link,
     search_movie,

@@ -8,6 +8,8 @@ import SolarMovieProvider from "~/providers/KrazyDevsScrapper/SolarMovieProvider
 import TvDetails from '~/components/TvDetails'
 import TvEpisodes from '~/components/TvEpisodes'
 import solarmovie from '~/api/solarmovie'
+import opensubtitle from '~/api/opensubtitle'
+import tmdb from '~/api/tmdb'
 import {
     startDownload
 } from "~/helpers/useDownload"
@@ -17,7 +19,8 @@ import { useSelector } from 'react-redux'
 const Details = ({ navigation, route }) => {
     const {
         provider,
-        open_subtitle_token
+        open_subtitle_token,
+        player_type
     } = useSelector(state => state.profile)
     const { movie } = route.params;
     const [video, setVideo] = useState(null);
@@ -28,11 +31,6 @@ const Details = ({ navigation, route }) => {
     const [selectedEpisode, setSelectedEpisode] = useState([]);
     const [tvLink, setTvLink] = useState("");
     const [subtitle, setSubtitle] = useState("")
-    const [tvSelected, setTVSelected] = useState({
-        season: 1,
-        episode: 1
-    });
-
 
 
     function onDownload() {
@@ -48,38 +46,70 @@ const Details = ({ navigation, route }) => {
     ///////////   THE FLIX FUNCTIONS //////////////////
 
     const getVideo = async () => {
+        console.log("getting video")
         setStatus('loading');
         try {
-            const video = await TheFlixProvider.loadFlicks(movie.link, movie.type);
+            const video = await TheFlixProvider.loadFlicks(movie.link, 'movie');
             setVideo(video.url);
+            if(open_subtitle_token != ""){
+                const subtitle = await opensubtitle.getSubtitle(movie, open_subtitle_token);
+                if(subtitle){
+                    setSubtitle(subtitle);
+                }
+            }
             setStatus('success');
         } catch (error) {
             setStatus('error');
         }
     }
 
-    const getTv = async () => {
+    const getSeason = async () => {
         setStatus('loading');
-        if (!tvLink.includes('undefined') && !tvLink.includes('null')) {
-            try {
-                const tv = await TheFlixProvider.loadFlicks(tvLink, movie.type);
-                setVideo(tv.url);
-                setStatus('success');
-            } catch (error) {
-                setStatus('error');
-            }
+        try {
+            const season = await tmdb.get_seasons(movie.id);
+            setSeasonData(season.seasons);
+            selectedSeason(season.seasons[0]);
+            setStatus('success');
+        } catch (err) {
+            setStatus('error');
         }
     }
 
+    const getEpisodes = async () => {
+        setStatus('loading');
+        try {
+            const episodes = await tmdb.get_episodes(movie.id, movie.title, selectedSeason.season_number);
+            setEpisodeData(episodes);
+            setSelectedEpisode(episodes[0]);
+            setStatus('success');
+        } catch (err) {
+            setStatus('error');
+        }
+    }
+
+    const getEpisodeLink = async () => {
+        setStatus('loading');
+        try {
+            const link = await TheFlixProvider.loadFlicks(selectedEpisode.link, "tv");
+            setVideo(link.url);
+            if(open_subtitle_token != ""){
+                const subtitle = await opensubtitle.getSubtitle(movie, opensubtitle_token, selectedSeason.season_number, selectedEpisode.episode_number);
+                if(subtitle){
+                    setSubtitle(subtitle);
+                }
+            }
+            setStatus('success');
+        } catch (err) {
+            setStatus('error');
+        }
+    }
 
     ////////////// SOLAR FUNCTIONS ////////////////////////
 
     const getVideoSolar = async () => {
         setStatus('loading');
-        console.log(movie.link)
         try {
             const video = await SolarMovieProvider.loadFlicks(movie.link, "movie");
-            console.log(video);
             setVideo(video.url)
             setSubtitle(video.subs[0].url);
             setStatus('success');
@@ -88,7 +118,7 @@ const Details = ({ navigation, route }) => {
         }
     }
 
-    const getSeason = async () => {
+    const getSeasonSolar = async () => {
         setStatus('loading');
         try {
             const season = await solarmovie.get_tv_details(movie.id);
@@ -99,7 +129,7 @@ const Details = ({ navigation, route }) => {
         }
     }
 
-    const getEpisodes = async () => {
+    const getEpisodesSolar = async () => {
         setStatus('loading');
         try {
             const episodes = await solarmovie.get_episodes(movie.id, selectedSeason.id);
@@ -110,14 +140,16 @@ const Details = ({ navigation, route }) => {
         }
     }
 
-    const getEpisodeLink = async () => {
+    const getEpisodeLinkSolar = async () => {
         setStatus('loading');
         try {
-            console.log(selectedEpisode)
             const episode = await SolarMovieProvider.loadFlicks(movie.link, "tv", selectedEpisode.id);
             if (episode) {
-                setVideo(episode?.url)
-                setSubtitle(episode?.subs[0]?.url);
+                console.log(episode.url)
+                setTvLink(episode?.url)
+                if(episode?.subs.lenght > 0){
+                    setSubtitle(episode?.subs[0]?.url || "");
+                }
                 setStatus('success');
             }
 
@@ -126,26 +158,32 @@ const Details = ({ navigation, route }) => {
         }
     }
 
+
+    ///////////////////////////////////////
+
     useEffect(() => {
-        getEpisodes();
+        if (movie.type == "tv") {
+            provider == "theflix" ? getEpisodes() : getEpisodesSolar();
+        }
     }, [selectedSeason])
 
     useEffect(() => {
-        getEpisodeLink();
+        if (movie.type == "tv") {
+            provider == "theflix" ? getEpisodeLink() : getEpisodeLinkSolar();
+        }
     }, [selectedEpisode])
 
+
+    const test = async () => {
+        const subtitle = await opensubtitle.getSubtitle(movie, opensubtitle_token);
+    }
     useEffect(() => {
-        // if(provider === "theflix"){
-        //     movie.type == "movie" ? getVideo() : getTv();
-        // }else{
-            movie.type == "movie" ? getVideoSolar() : getSeason();
-        // }
-        // 
-        // getVideoSolar();
-        
-        // getTVSolar();
-        // open_subtitle_token != '' && searchSubs()
-    }, [tvLink])
+        if (provider == "theflix") {
+            movie.type == "movie" ? getVideo() : getSeason();
+        } else {
+            movie.type == "movie" ? getVideoSolar() : getSeasonSolar();
+        }
+    }, [])
 
 
     return (
@@ -167,6 +205,7 @@ const Details = ({ navigation, route }) => {
                 navigation={navigation}
                 subtitle={subtitle}
                 onDownload={() => onDownload()}
+                player_type={player_type}
             />
             <ScrollView
                 showsVerticalScrollIndicator={false}

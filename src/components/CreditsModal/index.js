@@ -55,7 +55,7 @@ const CreditsModal = ({ isOpen, onClose }) => {
                             color: colors.white,
                             marginBottom: 20
                         }}
-                    >Flick v3</Text>
+                    >1.3.2 beta</Text>
                     <ScrollView>
                         <Text
                             style={{

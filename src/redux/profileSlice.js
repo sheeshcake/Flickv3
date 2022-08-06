@@ -6,12 +6,13 @@ const initialState = {
   myList: [],
   continueWatching: [],
   downloads: [],
-  provider: 'theflix',
+  provider: '',
   open_subtitle: {
     username: '',
     password: '',
   },
   open_subtitle_token: '',
+  player_type: 'legacy',
 }
 
 export const profileSlice = createSlice({
@@ -21,23 +22,20 @@ export const profileSlice = createSlice({
     getprofileData: (state, action) => {
       try{
         const userData = JSON.parse(action.payload)
+        console.log(userData.provider)
         state.myList = userData.myList
         state.continueWatching = userData.continueWatching
         state.downloads = userData.downloads
         state.provider = userData.provider
         state.open_subtitle = userData.open_subtitle
         state.open_subtitle_token = userData.open_subtitle_token
+        state.player_type = userData.player_type
       }catch(err){
         console.log(err)
       }
     },
-    setProvider: async (state, action) => {
+    setProvider: (state, action) => {
       state.provider = action.payload
-      try{
-        await AsyncStorage.setItem('userProfile', JSON.stringify(state))
-      }catch(err){
-        console.log(err)
-      }
     },
     setOpenSubtitleToken: (state, action) => {
       state.open_subtitle_token = action.payload.token
@@ -59,6 +57,9 @@ export const profileSlice = createSlice({
       state.downloads[index] = action.payload
       await AsyncStorage.setItem("userProfile", JSON.stringify(state))
     },
+    setPlayerType: (state, action) => {
+      state.player_type = action.payload
+    },
     removeToDownloads: (state, action) => {
     }
   },
@@ -75,6 +76,7 @@ export const {
   setProvider,
   setOpenSubtitleToken,
   getprofileData,
+  setPlayerType
 
 } = profileSlice.actions
 

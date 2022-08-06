@@ -3,10 +3,12 @@ import React from 'react'
 import Video from 'react-native-video'
 import { TextTrackType } from 'react-native-video'
 import { colors, sizes } from '~/constants/theme'
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import { Immersive } from 'react-native-immersive'
 import Orientation from 'react-native-orientation-locker';
 import Controls from './Controls';
-import { useNavigation } from '@react-navigation/native';
+import VideoPlayer from 'react-native-reanimated-player';
+import { useSharedValue } from 'react-native-reanimated';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const MediaPlayer = ({
     video,
@@ -16,17 +18,20 @@ const MediaPlayer = ({
     imageUrl,
     setStatus,
     onDownload,
-    subtitle
+    subtitle,
+    navigation,
+    player_type
 }) => {
-    const navigation = useNavigation();
     const [controlsHide, setControlsHide] = React.useState(false);
     const [playing, setPlaying] = React.useState(true);
+    const [paused, setPaused] = React.useState(false);
     const [currentPosition, setCurrentPosition] = React.useState(0);
     const [duration, setDuration] = React.useState(0);
     const [currentTime, setCurrentTime] = React.useState(0);
     const [fullscreen, setFullscreen] = React.useState(false);
-    const [resize, setResize] = React.useState('contain');
-
+    const [resize, setResize] = React.useState(1);
+    const videoHeight = useSharedValue(sizes.width * (9 / 16));
+    const isFullScreen = useSharedValue(false);
 
     const onPause = () => {
         setPlaying(false);
@@ -42,7 +47,7 @@ const MediaPlayer = ({
 
     const handleProgress = ({ currentTime: time }) => {
         setCurrentPosition(time);
-        if(status != 'playing') {
+        if (status != 'playing') {
             setStatus('playing')
         }
     }
@@ -55,109 +60,164 @@ const MediaPlayer = ({
     }
 
     const onFullscreen = () => {
-        if(fullscreen) {
+        if (fullscreen) {
             Orientation.lockToPortrait();
+            Immersive.setImmersive(!fullscreen)
             StatusBar.setHidden(false, "fade");
-        }else{
+        } else {
             Orientation.lockToLandscape();
+            Immersive.setImmersive(!fullscreen)
             StatusBar.setHidden(true, "fade");
         }
         setFullscreen(!fullscreen);
     }
 
     const onResize = () => {
-        if(resize === 'contain') {
-            setResize('cover');
-        }
-        else {
-            setResize('contain');
-        }
+        resize >= 0 && resize <= 3 ? setResize(resize + 1) : setResize(0);
     }
 
-        
     BackHandler.addEventListener('hardwareBackPress', () => {
         if (fullscreen) {
-            setFullscreen(false);
-            Orientation.lockToPortrait();
-            StatusBar.setHidden(false, "fade");
+            onFullscreen();
+            return true;
+        } else {
+            navigation.navigate("Tabs");
             return true;
         }
-        navigation.goBack();
-    });
+    })
 
-    return (
-        <View
-            style={{
-                zIndex: fullscreen ? 10 : 1,
-                height: fullscreen ? sizes.width : sizes.height * 0.3,
-                width: fullscreen ? sizes.height : sizes.width,
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                paddingHorizontal: sizes.width * 0.05,
-                backgrounImage: imageUrl,
-            }}
-            activeOpacity={1}
-            onPress={() => {
-                setControlsHide(!controlsHide);
-            }}
-        >
-            <Video
+    if (player_type == 'youtube') {
+        return (
+            <VideoPlayer
                 source={{
-                    uri: video, 
+                    uri: video,
                 }}
-                style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    bottom: 0,
-                    right: 0,
-                    height: fullscreen ? sizes.width : sizes.height * 0.3,
-                    width: fullscreen ? sizes.height : sizes.width,
+                showOnStart={true}
+                renderFullScreen={() => (
+                    <Icon
+                        name="fullscreen"
+                        size={sizes.width * 0.05}
+                        color={colors.white}
+                    />
+                )}
+                headerTitle={title}
+                onTapBack={() => {
+                    navigation.navigate("Tabs");
                 }}
-                onLoad={handleLoad}
-                seek={currentTime}
-                resizeMode={resize}
-                onBuffer={() => {
-                    setStatus('loading')
+                onPausedChange={state => {
+                    setPaused(state);
                 }}
-                controls={false}
-                repeat={true}
-                muted={false}
-                paused={!playing}
-                onSeek={({ currentTime: time }) => {
-                    setCurrentTime(time)
+                videoHeight={videoHeight}
+                paused={paused}
+                autoPlay={true}
+                doubleTapInterval={300}
+                isFullScreen={isFullScreen}
+                onEnterFullscreen={() => {
+                    Immersive.setImmersive(true)
+                    videoHeight.value = sizes.width;
                 }}
-                selectedTextTrack={{type: 'language', value: 'en'}}
-                onProgress={handleProgress}
-                textTracks={[{
+                onExitFullscreen={() => {
+                    Immersive.setImmersive(false)
+                    videoHeight.value = sizes.width * (9 / 16);
+                }}
+                selectedTextTrack={subtitle != "" && subtitle ? { type: 'language', value: 'en' } : { type: 'language', value: 'none' }}
+                textTracks={subtitle != "" && subtitle ? [{
                     title: title,
                     language: 'en',
-                    type: subtitle.split(".").pop() == "srt" ?TextTrackType.SRT : TextTrackType.VTT,
+                    type: subtitle.split(".").pop() == "srt" ? TextTrackType.SRT : TextTrackType.VTT,
                     uri: subtitle
-                }]}
+                }] : []}
             />
-            <Controls
-                title={title}
-                hide={controlsHide}
-                onHide={() => setControlsHide(!controlsHide)}
-                onPause={onPause}
-                onPlay={onPlay}
-                movie={movie}
-                resize={resize}
-                playing={playing}
-                currentPosition={currentPosition}
-                duration={duration}
-                onSeek={onSeek}
-                link={video ? true : false}
-                fullscreen={fullscreen}
-                onFullscreen={onFullscreen}
-                onResize={onResize}
-                videoStatus={status}
-                onDownload={onDownload}
-            />
-        </View>
-    )
+        )
+    } else {
+        return (
+            <View
+                style={{
+                    zIndex: fullscreen ? 10 : 1,
+                    height: fullscreen ? sizes.width : sizes.height * 0.3,
+                    width: fullscreen ? sizes.height : sizes.width,
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    backgrounImage: imageUrl,
+                }}
+                activeOpacity={1}
+                onPress={() => {
+                    setControlsHide(!controlsHide);
+                }}
+            >
+                <Video
+                    source={{
+                        uri: video,
+                        type: video?.split(".").pop(),
+                    }}
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        bottom: 0,
+                        right: 0,
+                        height: fullscreen ? sizes.width : sizes.height * 0.3,
+                        width: fullscreen ? sizes.height : sizes.width,
+                    }}
+                    // selectedAudioTrack={0}
+                    onLoad={handleLoad}
+                    seek={currentTime}
+                    resizeMode={['none', 'contain', 'cover', 'stretch'][resize]}
+                    onBuffer={() => {
+                        setStatus('loading')
+                    }}
+                    bufferConfig={{
+                        minBufferMs: 50000,
+                        maxBufferMs: 500000,
+                        bufferForPlaybackMs: 25000,
+                        bufferForPlaybackAfterRebufferMs: 50000,
+                    }}
+                    poster={imageUrl}
+                    posterResizeMode="cover"
+                    controls={false}
+                    repeat={true}
+                    onError={(error) => {
+                        console.log(error)
+                    }}
+                    muted={false}
+                    paused={!playing}
+                    hideShutterView={true}
+                    onSeek={({ currentTime: time }) => {
+                        setCurrentTime(time)
+                    }}
+                    onProgress={handleProgress}
+                    fullscreen={fullscreen}
+                    selectedTextTrack={subtitle != "" && subtitle ? { type: 'language', value: 'en' } : { type: 'language', value: 'none' }}
+                    textTracks={subtitle != "" && subtitle ? [{
+                        title: title,
+                        language: 'en',
+                        type: subtitle.split(".").pop() == "srt" ? TextTrackType.SRT : TextTrackType.VTT,
+                        uri: subtitle
+                    }] : []}
+                />
+                <Controls
+                    title={title}
+                    hide={controlsHide}
+                    onHide={() => setControlsHide(!controlsHide)}
+                    onPause={onPause}
+                    onPlay={onPlay}
+                    movie={movie}
+                    resize={resize}
+                    playing={playing}
+                    currentPosition={currentPosition}
+                    duration={duration}
+                    onSeek={onSeek}
+                    link={video ? true : false}
+                    fullscreen={fullscreen}
+                    onFullscreen={onFullscreen}
+                    onResize={onResize}
+                    videoStatus={status}
+                    onDownload={onDownload}
+                />
+            </View>
+        )
+    }
 }
 
 export default MediaPlayer

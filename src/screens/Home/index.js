@@ -21,9 +21,10 @@ const Home = ({ isFocused, navigation }) => {
         romance_movie,
         tv_show,
     } = useSelector(state => state.home)
+    const {
+        provider
+    } = useSelector(state => state.profile)
     const [openCredits, setOpenCredits] = useState(false)
-
-    const profile_data = useSelector(state => state.profile)
 
     const clearData = async () => {
         try {
@@ -33,10 +34,6 @@ const Home = ({ isFocused, navigation }) => {
         }
     }
 
-    useEffect(() => {
-        // clearData();
-        console.log(profile_data)
-    }, [])
 
     return (
         <SafeAreaView

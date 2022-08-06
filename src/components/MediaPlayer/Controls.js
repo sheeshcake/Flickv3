@@ -30,14 +30,32 @@ const Controls = ({
     // const {
     //     useStartDownload
     // } = helpers
+    const loadingMessage = require('~/constants/loadingmessage.js');
     const navigation = useNavigation();
     const [time, setTime] = useState();
     const [status, setStatus] = useState(status);
+    const [loading, setLoading] = useState('Loading...');
+    const getRandomNumber = () => {
+        const randomNumber = Math.floor(Math.random() * loadingMessage.default.length) + 1;
+        return randomNumber
+    }
+    const changeMessage = () => {
+        setTimeout(() => {
+            if (videoStatus == 'loading') {
+                setLoading(loadingMessage.default[getRandomNumber()]);
+                changeMessage();
+            }
+        }, 3000)
+    }
 
     useEffect(() => {
         const result = new Date(currentPosition * 1000).toISOString().substr(11, 8);
         setTime(result);
     }, [currentPosition]);
+
+    useEffect(() => {
+        changeMessage();
+    }, []);
 
     useEffect(() => {
         setStatus(videoStatus);
@@ -130,11 +148,25 @@ const Controls = ({
                 >
                     {
                         status == "loading" ? (
-                            <ActivityIndicator
-                                animating={isBuffering}
-                                color={colors.red}
-                                size="large"
-                            />
+                            <>
+                                <ActivityIndicator size="large" color={colors.red} />
+                                <View
+                                    style={{
+                                        width: '50%',
+                                        alignItems: 'center',
+                                    }}
+                                >
+                                    <Text
+                                        style={{
+                                            color: colors.white,
+                                            fontSize: 14,
+                                            textAlign: 'center',
+                                        }}
+                                    >
+                                        {loading}
+                                    </Text>
+                                </View>
+                            </>
                         ) : status == "error" ? (
                             <Text style={{ color: colors.white, fontSize: 20, fontWeight: 'bold' }}>No Video Available :(</Text>
                         ) : (
@@ -153,7 +185,6 @@ const Controls = ({
                     justifyContent: 'space-between',
                     backgroundColor: colors.transparentBlack,
                     alignItems: 'center',
-                    marginBottom: 20,
                 }}
             >
                 <TouchableOpacity
@@ -200,7 +231,7 @@ const Controls = ({
                             }}
                         >
                             <Icon
-                                name={resize == 'contain' ? "magnify-plus" : "magnify-minus"}
+                                name="magnify"
                                 size={sizes.width * 0.05}
                                 color={colors.white}
                             />

@@ -9,6 +9,7 @@ import { colors } from '~/constants/theme';
 import Tabs from '~/navigation/Tabs';
 import { store } from '~/redux/store'
 import { Provider } from 'react-redux'
+import Test from './src/screens/Test';
 
 const Stack = createStackNavigator();
 
@@ -30,6 +31,10 @@ const App = () => {
             }}
             initialRouteName={'Splash'}
           >
+            <Stack.Screen
+              name="Test"
+              component={Test}
+            />
             <Stack.Screen
               name="Tabs"
               component={Tabs}

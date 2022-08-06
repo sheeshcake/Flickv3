@@ -1,5 +1,5 @@
 import { View, Text, Image, ActivityIndicator, PermissionsAndroid, ScrollView } from 'react-native'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { colors } from '~/constants/theme'
 import AsyncStorage from '@react-native-community/async-storage'
 import { useDispatch } from 'react-redux'
@@ -13,6 +13,8 @@ import {
     setTvShow,
 } from '~/redux/homeSlice'
 
+import { useSelector } from 'react-redux'
+
 import {
     getprofileData,
 } from '~/redux/profileSlice'
@@ -20,7 +22,11 @@ import tmdb from '~/api/tmdb'
 import solarmovie from '~/api/solarmovie'
 
 const Splash = ({ navigation }) => {
+    const loadingMessage = require('~/constants/loadingmessage.js');
     const dispatch = useDispatch()
+    const {
+        provider
+    } = useSelector(state => state.profile)
 
     const loadData = async () => {
         dispatch(setMovies(await tmdb.hero()));
@@ -34,7 +40,6 @@ const Splash = ({ navigation }) => {
     }
 
     const loadData_solar = async () => {
-        dispatch(getprofileData(await AsyncStorage.getItem('userProfile') || []));
         dispatch(setMovies(await solarmovie.hero()));
         dispatch(setPopularMovie(await solarmovie.popular_movie()));
         dispatch(setHorrorMovie(await solarmovie.horror_movie()));
@@ -48,7 +53,6 @@ const Splash = ({ navigation }) => {
     const getData = async () => {
         try {
             const value = await AsyncStorage.getItem('userData')
-            console.log(value)
             if (value !== null) {
                 const userData = JSON.parse(value) || []
                 if (userData.length > 0) {
@@ -56,7 +60,7 @@ const Splash = ({ navigation }) => {
                 }
                 navigation.reset({
                     index: 0,
-                    routes: [{ name: 'Tabs' }]
+                    routes: [{ name: 'Tabs' }],
                 })
             } else {
                 const userData = JSON.parse(value) || []
@@ -88,10 +92,34 @@ const Splash = ({ navigation }) => {
     const testApi = async () => {
         console.log(await solarmovie.hero())
     }
+    const getRandomNumber = () => {
+        const randomNumber = Math.floor(Math.random() * loadingMessage.default.length) + 1;
+        return randomNumber
+    }
+
+    const [loading, setLoading] = useState('Loading...');
+    const changeMessage = () => {
+        setTimeout(() => {
+           setLoading(loadingMessage.default[getRandomNumber()]);
+           changeMessage();
+        }, 3000)
+    }
+
+    const getDatas = async () => {
+        await dispatch(getprofileData(await AsyncStorage.getItem('userProfile')))
+        console.log(provider)
+    }
+
     useEffect(() => {
-        // loadData()
-        loadData_solar()
+        if(provider !== '') {
+            provider == "solarmovie" ? loadData_solar() : loadData()
+        } 
+    }, [provider])
+
+    useEffect(() => {
+        changeMessage()
         loadPermission()
+        getDatas()
     }, [])
 
     return (
@@ -110,6 +138,23 @@ const Splash = ({ navigation }) => {
                 }}
             />
             <ActivityIndicator size="large" color={colors.red} />
+            <View
+                style={{
+                    width: '50%',
+                    alignItems: 'center',
+                }}
+            >
+                <Text
+                    style={{
+                        color: colors.white,
+                        fontSize: 14,
+                        textAlign: 'center',
+                    }}
+                >
+                    {loading}
+                </Text>
+            </View>
+
         </View>
     )
 }

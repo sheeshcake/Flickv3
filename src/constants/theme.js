@@ -10,7 +10,7 @@ export const colors = {
     transparentBlack: 'rgba(0, 0, 0, 0.5)',
     gray: '#9B9B9B',
     green: '#00B300',
-    darkGray: '#4A4A4A',
+    darkGray: '#303030',
 }
 
 export const fonts = {
