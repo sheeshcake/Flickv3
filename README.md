@@ -22,3 +22,7 @@ Watch and Download Free movies and TV Shows, HD movies directly on your mobile d
 * Auto Play Next Video
 * Background Download
 * Offline Mode
+
+
+### Download ###
+* You can download the latest build [HERE](https://github.com/sheeshcake/Flickv3/tree/master/builds/android).

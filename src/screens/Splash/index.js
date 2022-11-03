@@ -17,6 +17,7 @@ import { useSelector } from 'react-redux'
 
 import {
     getprofileData,
+    setProvider,
 } from '~/redux/profileSlice'
 import tmdb from '~/api/tmdb'
 import solarmovie from '~/api/solarmovie'
