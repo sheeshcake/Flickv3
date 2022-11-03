@@ -55,7 +55,7 @@ const CreditsModal = ({ isOpen, onClose }) => {
                             color: colors.white,
                             marginBottom: 20
                         }}
-                    >1.3.2 beta</Text>
+                    >1.3.3 beta</Text>
                     <ScrollView>
                         <Text
                             style={{
@@ -71,6 +71,7 @@ const CreditsModal = ({ isOpen, onClose }) => {
                             style={{
                                 marginBottom: 50,
                                 fontSize: 19,
+                                color: colors.white,
                             }}
                         >
                             Flick (v3) is a Free Movie Streaming and Download app, no ads, no accounts, no bullshits, just free!.
@@ -93,7 +94,8 @@ const CreditsModal = ({ isOpen, onClose }) => {
                             style={{
                                 marginBottom: 50,
                                 fontSize: 19,
-                                textAlign: 'center'
+                                textAlign: 'center',
+                                color: colors.white,
                             }}
                         >
                             KrazyDevs LLC (not a real company){'\n\n'}
@@ -127,6 +129,7 @@ const CreditsModal = ({ isOpen, onClose }) => {
                         <Text
                             style={{
                                 fontSize: 19,
+                                color: colors.white,
                             }}
                         >
                             Any legal issues regarding the content on this application should be taken up with the actual file hosts and providers themselves as we are not affiliated with them. In case of copyright infringement, please directly contact the responsible parties or the streaming websites. The app is purely for educational and personal use. Flick(v3) does not host any content on the app, and has no control over what media is put up or taken down. Flick(v3) functions like any other search engine, such as Google. Flick(v3) does not host, upload or manage any videos, films or content. It simply crawls, aggregates and displayes links in a convenient, user-friendly interface. It merely scrapes 3rd-party websites that are publicly accessable via any regular web browser. It is the responsibility of user to avoid any actions that might violate the laws governing his/her locality. Use Flick(v3) at your own risk.

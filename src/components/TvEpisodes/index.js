@@ -8,7 +8,6 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const TvEpisodes = ({ episodeData, setSelectedEpisode, selectedEpisode}) => {
 
-
     return (
         <View
             style={{
@@ -20,6 +19,7 @@ const TvEpisodes = ({ episodeData, setSelectedEpisode, selectedEpisode}) => {
         >
             {
                 episodeData?.map(episode => (
+                    console.log(episode),
                     <TouchableOpacity
                         key={episode.id}
                         onPress={() => {
@@ -42,7 +42,7 @@ const TvEpisodes = ({ episodeData, setSelectedEpisode, selectedEpisode}) => {
                                     borderRadius: 10,
                                     marginHorizontal: 10,
                                 }}
-                                resizeMode="contain"
+                                resizeMode="cover"
                             />
                             <View
                                 style={{
@@ -56,13 +56,13 @@ const TvEpisodes = ({ episodeData, setSelectedEpisode, selectedEpisode}) => {
                                     style={{
                                         fontSize: 16,
                                         fontWeight: 'bold',
-                                        color: colors.light,
+                                        color: colors.white,
                                         paddingBottom: 5,
                                     }}
                                 >{episode.title}</Text>
                                 <Text
                                     style={{
-                                        color: colors.light,
+                                        color: colors.white,
                                     }}
                                     numberOfLines={4}
                                 >
@@ -81,7 +81,7 @@ const TvEpisodes = ({ episodeData, setSelectedEpisode, selectedEpisode}) => {
                                     <Icon
                                         name="play"
                                         size={30}
-                                        color={colors.light}
+                                        color={colors.white}
                                     />
                                 </View>
                             }

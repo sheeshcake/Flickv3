@@ -104,10 +104,13 @@ const Splash = ({ navigation }) => {
            changeMessage();
         }, 3000)
     }
-
     const getDatas = async () => {
         await dispatch(getprofileData(await AsyncStorage.getItem('userProfile')))
-        console.log(provider)
+        if(provider !== '') {
+            provider == "solarmovie" ? loadData_solar() : loadData()
+        } else {
+            loadData()
+        }
     }
 
     useEffect(() => {

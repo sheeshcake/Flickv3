@@ -30,7 +30,7 @@ const Settings = ({ navigation }) => {
     const [token, setToken] = useState('');
     const [providers, setProviders] = useState([
         { label: 'The Flix', value: 'theflix' },
-        { label: 'Solar Movies', value: 'solarmovie' },
+        { label: 'Solar Movies(Unstable)', value: 'solarmovie' },
     ]);
     const [players, setPlayers] = useState([
         { label: 'YoutubePlayer(beta)', value: 'youtube' },

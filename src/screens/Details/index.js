@@ -247,13 +247,13 @@ const Details = ({ navigation, route }) => {
                                 style={{
                                     fontSize: 30,
                                     fontWeight: "bold",
-                                    color: colors.light,
+                                    color: colors.white,
                                     paddingBottom: 5,
                                 }}
                             >{movie.title}</Text>
                             <Text
                                 style={{
-                                    color: colors.light,
+                                    color: colors.white,
                                 }}
                             >
                                 {movie?.description || "No Description"}
