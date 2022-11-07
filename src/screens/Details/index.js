@@ -52,9 +52,10 @@ const Details = ({ navigation, route }) => {
             const video = await TheFlixProvider.loadFlicks(movie.link, 'movie');
             setVideo(video.url);
             if(open_subtitle_token != ""){
+                console.log("subtitle is loading")
                 const subtitle = await opensubtitle.getSubtitle(movie, open_subtitle_token);
                 if(subtitle){
-                    setSubtitle(subtitle);
+                    setSubtitle(subtitle?.link);
                 }
             }
             setStatus('success');

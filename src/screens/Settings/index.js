@@ -54,16 +54,23 @@ const Settings = ({ navigation }) => {
                     },
                     open_subtitle_token: res.token,
                     player_type: player_type,
-                }))
+                })).catch((error) => {
+                    console.log(error)
+                });
+                if(res.token){
+                    dispatch(setOpenSubtitleToken({
+                        username: username,
+                        password: password,
+                        token: res.token
+                    }));
+                }else{
+                    alert("Error logging in")
+                }
                 console.log(await AsyncStorage.getItem("userProfile"))
             } catch (err) {
                 console.log(err)
+                alert("Wrong Username or Password")
             }
-            dispatch(setOpenSubtitleToken({
-                username: username,
-                password: password,
-                token: res.token
-            }));
         }
     }
 

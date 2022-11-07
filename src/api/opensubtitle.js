@@ -17,9 +17,10 @@ export const getSubtitle = async (movie, token, season, episode) => {
                 Accept: "application/json",
                 "Api-key": apiKey
             }
-        }).catch(e => console.log(e))
-        console.log("downloading subtitle")
+        }).catch(e => console.log(e)).then(res => res)
+        console.log("downloading subtitle", search)
         const r_search = await search.json()
+        console.log(r_search.data[0].id)
         const file_id = r_search.data[0]
         const formData = new FormData()
         console.log("file_id found: ", file_id.attributes.files[0].file_id)
@@ -28,15 +29,20 @@ export const getSubtitle = async (movie, token, season, episode) => {
         const subtitle = await fetch("https://api.opensubtitles.com/api/v1/download", {
             method: "POST",
             headers: {
-                "User-Agent": "PostmanRuntime/7.29.2",
+                "Api-key": apiKey,
                 "Authorization": `Bearer ${token}`,
                 'Content-Type': 'application/json',
-                "Api-Key": apiKey
+                'Accept': 'application/json',
             },
-            body: JSON.stringify(formData)
-        }).then(response => {console.log(response); response.json()}).catch(err => console.log("opensub Download: ", err))
-        console.log("download complete: ", subtitle)
-        return r_subtitle?.data?.link || false;
+            'body': JSON.stringify({
+                "file_id": file_id.attributes.files[0].file_id
+            })
+        }).then(res => res)
+        console.log("subtitle found: ", subtitle)
+        const r_data = await subtitle.json()
+        console.log("download complete: ", r_data)
+        console.log("subtitle: ", r_data?.link )
+        return r_data
     } catch (err) {
         console.log(err)
     }
