@@ -6,7 +6,7 @@ const initialState = {
   myList: [],
   continueWatching: [],
   downloads: [],
-  provider: '',
+  provider: 'flixhq',
   open_subtitle: {
     username: '',
     password: '',
