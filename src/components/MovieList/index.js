@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native'
 import React from 'react'
 import { sizes, colors } from '~/constants/theme'
-
+import { random } from 'lodash';
 
 
 const MovieList = ({ title, movies, navigation }) => {
@@ -36,7 +36,7 @@ const MovieList = ({ title, movies, navigation }) => {
                             marginRight: 10,
                             marginBottom: 10,
                         }}
-                        key={movie.id + title}
+                        key={movie.id + title + Math.floor(Math.random() * 10000) + 1}
                     >
                         <TouchableOpacity
                             style={{

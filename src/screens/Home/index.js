@@ -30,7 +30,7 @@ const Home = ({ isFocused, navigation }) => {
         try {
             await AsyncStorage.removeItem('userData')
         } catch (error) {
-            console.log(error)
+            alert("An error occured while clearing data")
         }
     }
 
@@ -53,12 +53,12 @@ const Home = ({ isFocused, navigation }) => {
                 }}
             >
                 <MovieCarousel movies={movies} navigation={navigation} />
-                <MovieList key={1} title="Top Rated" movies={popular_movie} navigation={navigation} />
-                <MovieList key={2} title="Horror" movies={horror_movie} navigation={navigation} />
-                <MovieList key={3}  title="Action" movies={action_movie} navigation={navigation} />
-                <MovieList key={4}  title="Comedy" movies={comedy_movie} navigation={navigation} />
-                <MovieList key={5}  title="Romance" movies={romance_movie} navigation={navigation} />
-                <MovieList key={6}  title="TV Show" movies={tv_show} navigation={navigation} />
+                <MovieList key={Math.floor(Math.random() * 10000) + 1} title="Top Rated" movies={popular_movie} navigation={navigation} />
+                <MovieList key={Math.floor(Math.random() * 10000) + 1} title="Horror" movies={horror_movie} navigation={navigation} />
+                <MovieList key={Math.floor(Math.random() * 10000) + 1}  title="Action" movies={action_movie} navigation={navigation} />
+                <MovieList key={Math.floor(Math.random() * 10000) + 1}  title="Comedy" movies={comedy_movie} navigation={navigation} />
+                <MovieList key={Math.floor(Math.random() * 10000) + 1}  title="Romance" movies={romance_movie} navigation={navigation} />
+                <MovieList key={Math.floor(Math.random() * 10000) + 1}  title="TV Show" movies={tv_show} navigation={navigation} />
             </ScrollView>
             <CreditsModal
                 isOpen={openCredits}

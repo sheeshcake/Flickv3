@@ -29,8 +29,9 @@ const Settings = ({ navigation }) => {
     const [password, setPassword] = useState('');
     const [token, setToken] = useState('');
     const [providers, setProviders] = useState([
-        { label: 'The Flix', value: 'theflix' },
-        { label: 'Solar Movies(Unstable)', value: 'solarmovie' },
+        { label: 'FlixHQ', value: 'flixhq', disabled: false},
+        { label: 'Solar Movies', value: 'solarmovie', disabled: false },
+        { label: 'FMovies (Broken) :(', value: 'fmovies', disabled: false },
     ]);
     const [players, setPlayers] = useState([
         { label: 'YoutubePlayer(beta)', value: 'youtube' },
@@ -55,7 +56,7 @@ const Settings = ({ navigation }) => {
                     open_subtitle_token: res.token,
                     player_type: player_type,
                 })).catch((error) => {
-                    console.log(error)
+                    alert("An error occurred while saving your data")
                 });
                 if(res.token){
                     dispatch(setOpenSubtitleToken({
@@ -66,9 +67,7 @@ const Settings = ({ navigation }) => {
                 }else{
                     alert("Error logging in")
                 }
-                console.log(await AsyncStorage.getItem("userProfile"))
             } catch (err) {
-                console.log(err)
                 alert("Wrong Username or Password")
             }
         }
@@ -89,9 +88,8 @@ const Settings = ({ navigation }) => {
                 open_subtitle_token: '',
                 player_type: player_type,
             }))
-            console.log(await AsyncStorage.getItem("userProfile"))
         } catch (err) {
-            console.log(err)
+            alert("An error occurred while saving your data")
         }
         dispatch(setOpenSubtitleToken({
             username: '',
@@ -111,7 +109,7 @@ const Settings = ({ navigation }) => {
                 player_type: player
             }))
         } catch (err) {
-            console.log(err)
+            alert("An error occurred while saving your data")
         }
         dispatch(setPlayerType(player))
         alert("Media Player Changed!")
@@ -129,9 +127,8 @@ const Settings = ({ navigation }) => {
                 open_subtitle_token: open_subtitle_token,
                 player_type: player_type,
             }))
-            console.log(await AsyncStorage.getItem("userProfile"))
         } catch (err) {
-            console.log(err)
+            alert("An error occurred while saving your data")
         }
         dispatch(setProvider(selectedProvider))
         navigation.navigate("Splash");
@@ -550,7 +547,7 @@ const Settings = ({ navigation }) => {
                         }
                         }>
                         {players?.map(p => (
-                            <Picker.Item key={p.value} label={p.label} value={p.value} />
+                            <Picker.Item key={p.value} label={p.label} value={p.value} disabled={p.disabled}/>
                         ))}
                     </Picker>
                     <Text
@@ -560,7 +557,7 @@ const Settings = ({ navigation }) => {
                             marginBottom: sizes.width * 0.01,
                         }}
                     >
-                        Youtube Player is in beta mode and may not work i recommend legacy for now.. :D
+                        Youtube Player is beta and may not work i recommend legacy for now.. :D
                     </Text>
                     <TouchableOpacity
                         onPress={() => {

@@ -19,8 +19,26 @@ import {
     getprofileData,
     setProvider,
 } from '~/redux/profileSlice'
-import tmdb from '~/api/tmdb'
-import solarmovie from '~/api/solarmovie'
+
+// import providers here
+
+import {
+    getheroflixhq,
+    getgenreflixhq,
+} from '~/providers/KrazyDevsScrapper/FlixHQProvider'
+
+import {
+    getherosolarmovie,
+    getgenresolarmovie,
+} from '~/providers/KrazyDevsScrapper/SolarMovieProvider'
+
+import {
+    getherofmovies,
+    getgenrefmovies,
+} from '~/providers/KrazyDevsScrapper/FMoviesProvider'
+
+////////////////////
+import { fromPairs } from 'lodash'
 
 const Splash = ({ navigation }) => {
     const loadingMessage = require('~/constants/loadingmessage.js');
@@ -29,25 +47,36 @@ const Splash = ({ navigation }) => {
         provider
     } = useSelector(state => state.profile)
 
-    const loadData = async () => {
-        dispatch(setMovies(await tmdb.hero()));
-        dispatch(setPopularMovie(await tmdb.popular_movie()));
-        dispatch(setHorrorMovie(await tmdb.horror_movie()));
-        dispatch(setActionMovie(await tmdb.action_movie()));
-        dispatch(setComedyMovie(await tmdb.comedy_movie()));
-        dispatch(setRomanceMovie(await tmdb.romance_movie()));
-        dispatch(setTvShow(await tmdb.popular_tv()));
+    const laodDataFlixHQ = async () => {
+        dispatch(setMovies(await getheroflixhq()));
+        dispatch(setPopularMovie(await getheroflixhq('movie')));
+        dispatch(setHorrorMovie(await getgenreflixhq('horror', 'movie')));
+        dispatch(setActionMovie(await getgenreflixhq('action', 'movie')));
+        dispatch(setComedyMovie(await getgenreflixhq('comedy', 'movie')));
+        dispatch(setRomanceMovie(await getgenreflixhq('romance', 'movie')));
+        dispatch(setTvShow(await getheroflixhq('tv')));
         getData();
     }
 
-    const loadData_solar = async () => {
-        dispatch(setMovies(await solarmovie.hero()));
-        dispatch(setPopularMovie(await solarmovie.popular_movie()));
-        dispatch(setHorrorMovie(await solarmovie.horror_movie()));
-        dispatch(setActionMovie(await solarmovie.action_movie()));
-        dispatch(setComedyMovie(await solarmovie.comedy_movie()));
-        dispatch(setRomanceMovie(await solarmovie.romance_movie()));
-        dispatch(setTvShow(await solarmovie.popular_tv()));
+    const laodDataSolarMovie = async () => {
+        dispatch(setMovies(await getherosolarmovie()));
+        dispatch(setPopularMovie(await getherosolarmovie('movie')));
+        dispatch(setHorrorMovie(await getgenresolarmovie('horror', 'movie')));
+        dispatch(setActionMovie(await getgenresolarmovie('action', 'movie')));
+        dispatch(setComedyMovie(await getgenresolarmovie('comedy', 'movie')));
+        dispatch(setRomanceMovie(await getgenresolarmovie('romance', 'movie')));
+        dispatch(setTvShow(await getherosolarmovie('tv')));
+        getData();
+    }
+
+    const laodDataFMovies = async () => {
+        dispatch(setMovies(await getherofmovies()));
+        dispatch(setPopularMovie(await getherofmovies('movie')));
+        dispatch(setHorrorMovie(await getgenrefmovies('horror', 'movie')));
+        dispatch(setActionMovie(await getgenrefmovies('action', 'movie')));
+        dispatch(setComedyMovie(await getgenrefmovies('comedy', 'movie')));
+        dispatch(setRomanceMovie(await getgenrefmovies('romance', 'movie')));
+        dispatch(setTvShow(await getherofmovies('tv')));
         getData();
     }
 
@@ -72,7 +101,7 @@ const Splash = ({ navigation }) => {
                 })
             }
         } catch (error) {
-            console.log(error)
+            alert("Error: " + error);
         }
     }
 
@@ -86,7 +115,7 @@ const Splash = ({ navigation }) => {
                 PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
             );
         } catch (error) {
-            console.log(error);
+            alert("Error: " + error);
         }
     }
 
@@ -108,15 +137,41 @@ const Splash = ({ navigation }) => {
     const getDatas = async () => {
         await dispatch(getprofileData(await AsyncStorage.getItem('userProfile')))
         if(provider !== '') {
-            provider == "solarmovie" ? loadData_solar() : loadData()
+            switch(provider) {
+                case "flixhq":
+                    laodDataFlixHQ()
+                    break;
+                case "solarmovie":
+                    laodDataSolarMovie()
+                    break;
+                case "fmovies":
+                    laodDataFMovies()
+                    break;
+                default:
+                    laodDataFlixHQ()
+                    break;
+            }
         } else {
-            loadData()
+            laodDataFlixHQ()
         }
     }
 
     useEffect(() => {
         if(provider !== '') {
-            provider == "solarmovie" ? loadData_solar() : loadData()
+            switch(provider) {
+                case "flixhq":
+                    laodDataFlixHQ()
+                    break;
+                case "solarmovie":
+                    laodDataSolarMovie()
+                    break;
+                case "fmovies":
+                    laodDataFMovies()
+                    break;
+                default:
+                    laodDataFlixHQ()
+                    break;
+            }
         } 
     }, [provider])
 

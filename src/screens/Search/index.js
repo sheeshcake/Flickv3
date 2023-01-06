@@ -8,6 +8,23 @@ import { debounce } from "lodash";
 import tmdb from '~/api/tmdb';
 import solarmovie from '~/api/solarmovie';
 import { useSelector } from 'react-redux';
+/// import Providers Here
+import { 
+  searchflixhq,
+  getheroflixhq
+ } from "~/providers/KrazyDevsScrapper/FlixHQProvider"
+
+ import { 
+  searchsolarmovie,
+  getherosolarmovie
+ } from "~/providers/KrazyDevsScrapper/SolarMovieProvider"
+
+ import {
+  searchfmovies,
+  getherofmovies
+  } from "~/providers/KrazyDevsScrapper/FMoviesProvider"
+
+////
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 
@@ -24,36 +41,90 @@ const Search = ({navigation}) => {
   const [tvShows, setTvShows] = React.useState([]);
   // const [anime, setAnime] = React.useState([]);
 
-  const get_datas = async () => {
-    setMovies(await tmdb.popular_movie());
-    setTvShows(await tmdb.popular_tv());
-    // setAnime(await tmdb.anime());
+  const get_datas_flixhq = async () => {
+    setMovies(await getheroflixhq('movie'));
+    setTvShows(await getheroflixhq("tv"));
   }
-
-  const get_search = async () => {
-    setMovies(await tmdb.search_movie(search));
-    setTvShows(await tmdb.search_tv(search));
-    // setAnime(await tmdb.search_anime(search));
+  const get_search_flixhq = async () => {
+    searchflixhq(search).then((r) => {
+      setMovies(r.filter((item) => item.type == "movie"));
+      setTvShows(r.filter((item) => item.type == "tv"));
+    })
   }
 
 
   const get_datas_solar = async () => {
-    setMovies(popular_movie);
-    setTvShows(tv_show);
+    setMovies(await getherosolarmovie('movie'));
+    setTvShows(await getherosolarmovie("tv"));
+  }
+  const get_search_solar = async () => {
+    searchsolarmovie(search).then((r) => {
+      setMovies(r.filter((item) => item.type == "movie"));
+      setTvShows(r.filter((item) => item.type == "tv"));
+    })
   }
 
-  const get_search_solar = async () => {
-    setMovies(await solarmovie.search_movie(search));
-    setTvShows(await solarmovie.search_tv(search));
+  const get_datas_fmovies = async () => {
+    setMovies(await getherofmovies('movie'));
+    setTvShows(await getherofmovies("tv"));
   }
-  const handler = useCallback(debounce(provider == "theflix" ? get_search: get_search_solar , 2000), [search]);
+
+  const get_search_fmovies = async () => {
+    searchfmovies(search).then((r) => {
+      setMovies(r.filter((item) => item.type == "movie"));
+      setTvShows(r.filter((item) => item.type == "tv"));
+    })
+  }
+
+
+  const handler = useCallback(debounce(() =>{
+    switch(provider){
+      case "flixhq":
+        get_search_flixhq();
+        break;
+      case "solarmovie":
+        get_search_solar();
+        break;
+      case "fmovies":
+        get_search_fmovies();
+        break;
+      default:
+        break;
+    }
+  } , 1000), [search]);
+
+
   useEffect(() => {
-    provider == "theflix" ? get_datas() : get_datas_solar();
+    switch(provider){
+      case "flixhq":
+        get_datas_flixhq();
+        break;
+      case "solarmovie":
+        get_datas_solar();
+        break;
+      case "fmovies":
+        get_datas_fmovies();
+        break;
+      default:
+        break;
+    }
   }, []);
 
   useEffect(() => {
     if(search == ""){
-      get_datas_solar();
+      switch(provider){
+        case "flixhq":
+          get_search_flixhq();
+          break;
+        case "solarmovie":
+          get_datas_solar();
+          break;
+        case "fmovies":
+          get_datas_fmovies();
+          break;
+        default:
+          break;
+      }
     }else{
       handler();
     }

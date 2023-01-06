@@ -34,7 +34,7 @@ const TvDetails = ({ setSelectedSeason, seasonData, selectedSeason }) => {
                 {seasonData?.map(season => (
                     <Picker.Item style={{
                         color: colors.black,
-                    }} key={season.id} label={season.name} value={season.id} />
+                    }} key={season.id} label={season.title} value={season.id} />
                 ))}
             </Picker>
         </View>

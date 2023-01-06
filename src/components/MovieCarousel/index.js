@@ -73,7 +73,7 @@ const MovieCarousel = ({ movies, navigation }) => {
                                 width: ITEM_SIZE,
                                 height: ITEM_SIZE * 1.5
                             }}
-                            key={item.id + index + item.name + "-carousel"}
+                            key={item.id + index + item.name + "-carousel" + Math.floor(Math.random() * 10000) + 1}
                             onPress={() => {
                                 navigation.push('Details', {
                                     movie: item,

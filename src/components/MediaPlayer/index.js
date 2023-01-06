@@ -159,6 +159,7 @@ const MediaPlayer = ({
                             'Referer': 'https://theflix.to/',
                         }
                     }}
+                    rate={1.0}
                     style={{
                         position: 'absolute',
                         top: 0,
@@ -174,12 +175,6 @@ const MediaPlayer = ({
                     resizeMode={['none', 'contain', 'cover', 'stretch'][resize]}
                     onBuffer={() => {
                         setStatus('loading')
-                    }}
-                    bufferConfig={{
-                        minBufferMs: 50000,
-                        maxBufferMs: 500000,
-                        bufferForPlaybackMs: 25000,
-                        bufferForPlaybackAfterRebufferMs: 50000,
                     }}
                     poster={imageUrl}
                     posterResizeMode="cover"

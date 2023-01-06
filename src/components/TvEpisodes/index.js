@@ -19,7 +19,6 @@ const TvEpisodes = ({ episodeData, setSelectedEpisode, selectedEpisode}) => {
         >
             {
                 episodeData?.map(episode => (
-                    console.log(episode),
                     <TouchableOpacity
                         key={episode.id}
                         onPress={() => {
