@@ -34,7 +34,7 @@ const Settings = ({ navigation }) => {
         { label: 'FMovies (Broken) :(', value: 'fmovies', disabled: false },
     ]);
     const [players, setPlayers] = useState([
-        { label: 'YoutubePlayer(beta)', value: 'youtube' },
+        { label: 'YoutubePlayer', value: 'youtube' },
         { label: 'Legacy', value: 'legacy' },
     ]);
     const [player, setPlayer] = useState('legacy');
@@ -557,7 +557,6 @@ const Settings = ({ navigation }) => {
                             marginBottom: sizes.width * 0.01,
                         }}
                     >
-                        Youtube Player is beta and may not work i recommend legacy for now.. :D
                     </Text>
                     <TouchableOpacity
                         onPress={() => {

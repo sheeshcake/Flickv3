@@ -12,7 +12,7 @@ const initialState = {
     password: '',
   },
   open_subtitle_token: '',
-  player_type: 'legacy',
+  player_type: 'youtube',
 }
 
 export const profileSlice = createSlice({

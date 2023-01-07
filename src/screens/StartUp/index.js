@@ -29,7 +29,7 @@ const StartUp = ({ navigation }) => {
                 provider: 'flixhq',
                 open_subtitle: '',
                 open_subtitle_token: '',
-                player_type: 'legacy',
+                player_type: 'youtube',
             })).catch((error) => {
                 alert("An error occurred while saving your data")
             });
