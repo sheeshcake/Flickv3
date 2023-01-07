@@ -123,9 +123,11 @@ const Details = ({ navigation, route }) => {
     const getEpisodeVideoHQ = async (episode) => {
         setStatus('loading');
         try {
-            const video = await loadSeriesEpisodeHQ(episode);
-            setVideo(video.sources[0].url);
-            setSubtitle(video.subtitles.find(sub => sub.lang.includes('English')).url);
+            if(episode){
+                const video = await loadSeriesEpisodeHQ(episode);
+                setVideo(video.sources[0].url);
+                setSubtitle(video.subtitles.find(sub => sub.lang.includes('English')).url);
+            }
         } catch (err) {
             setStatus('error');
         }
@@ -133,7 +135,7 @@ const Details = ({ navigation, route }) => {
 
 
     useEffect(() => {
-        if (movie.type == "tv") {
+        if (movie.type == "tv" && selectedEpisode.id) {
             switch (provider) {
                 case "solarmovie":
                     getEpisodeVideoSolar(selectedEpisode.id);
@@ -176,7 +178,7 @@ const Details = ({ navigation, route }) => {
                 break;
             }
             default:
-                getEpisodeVideoHQ(selectedEpisode.id);
+                console.log("Retrying...")
                 break;
         }
     }, [])

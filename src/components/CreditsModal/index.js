@@ -10,7 +10,6 @@ const CreditsModal = ({ isOpen, onClose }) => {
     const getYosi = async () => {
         try{
             const yosi = await AsyncStorage.getItem('yosi');
-            console.log("yosi: " + yosi)
             if(yosi !== null) {
                 setYosi(parseInt(yosi));
             } else {
@@ -18,7 +17,6 @@ const CreditsModal = ({ isOpen, onClose }) => {
             }
         } catch (e) {
             setYosi(0);
-            console.log(e);
         }
     }
 
@@ -83,7 +81,7 @@ const CreditsModal = ({ isOpen, onClose }) => {
                             color: colors.white,
                             marginBottom: 20
                         }}
-                    >1.4.1 beta</Text>
+                    >1.4.2 beta</Text>
                     <ScrollView>
                         <Text
                             style={{

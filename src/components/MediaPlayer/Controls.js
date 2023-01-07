@@ -118,6 +118,7 @@ const Controls = ({
                     }}
                     style={{
                         padding: 10,
+                        opacity: 0,
                         alignItems: 'center',
                         justifyContent: 'center',
                     }}

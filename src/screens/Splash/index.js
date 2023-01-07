@@ -43,6 +43,7 @@ import { fromPairs } from 'lodash'
 const Splash = ({ navigation }) => {
     const loadingMessage = require('~/constants/loadingmessage.js');
     const dispatch = useDispatch()
+    const [isInitialized, setIsInitialized] = useState(false)
     const {
         provider
     } = useSelector(state => state.profile)
@@ -55,7 +56,7 @@ const Splash = ({ navigation }) => {
         dispatch(setComedyMovie(await getgenreflixhq('comedy', 'movie')));
         dispatch(setRomanceMovie(await getgenreflixhq('romance', 'movie')));
         dispatch(setTvShow(await getheroflixhq('tv')));
-        getData();
+        getData()
     }
 
     const laodDataSolarMovie = async () => {
@@ -66,7 +67,7 @@ const Splash = ({ navigation }) => {
         dispatch(setComedyMovie(await getgenresolarmovie('comedy', 'movie')));
         dispatch(setRomanceMovie(await getgenresolarmovie('romance', 'movie')));
         dispatch(setTvShow(await getherosolarmovie('tv')));
-        getData();
+        getData()
     }
 
     const laodDataFMovies = async () => {
@@ -77,7 +78,7 @@ const Splash = ({ navigation }) => {
         dispatch(setComedyMovie(await getgenrefmovies('comedy', 'movie')));
         dispatch(setRomanceMovie(await getgenrefmovies('romance', 'movie')));
         dispatch(setTvShow(await getherofmovies('tv')));
-        getData();
+        getData()
     }
 
     const getData = async () => {
@@ -152,8 +153,6 @@ const Splash = ({ navigation }) => {
                         laodDataFlixHQ()
                         break;
                 }
-            } else {
-                laodDataFlixHQ()
             }
         } catch (error) {
             alert("Error: " + error);
@@ -161,9 +160,9 @@ const Splash = ({ navigation }) => {
     }
 
     useEffect(() => {
-        console.log(provider)
         try{
-            if(provider !== '') {
+            if(provider != '' && isInitialized === false) {
+                setIsInitialized(true)
                 switch(provider) {
                     case "flixhq":
                         laodDataFlixHQ()
@@ -175,7 +174,6 @@ const Splash = ({ navigation }) => {
                         laodDataFMovies()
                         break;
                     default:
-                        laodDataFlixHQ()
                         break;
                 }
             } 

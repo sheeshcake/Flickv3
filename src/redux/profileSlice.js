@@ -22,7 +22,6 @@ export const profileSlice = createSlice({
     getprofileData: (state, action) => {
       try{
         const userData = JSON.parse(action.payload)
-        console.log(userData.provider)
         state.myList = userData.myList
         state.continueWatching = userData.continueWatching
         state.downloads = userData.downloads
@@ -31,7 +30,7 @@ export const profileSlice = createSlice({
         state.open_subtitle_token = userData.open_subtitle_token
         state.player_type = userData.player_type
       }catch(err){
-        console.log(err)
+        alert("An error occurred while loading your data")
       }
     },
     setProvider: (state, action) => {

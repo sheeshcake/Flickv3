@@ -31,10 +31,10 @@ const App = () => {
             }}
             initialRouteName={'Splash'}
           >
-            <Stack.Screen
+            {/* <Stack.Screen
               name="Test"
               component={Test}
-            />
+            /> */}
             <Stack.Screen
               name="Tabs"
               component={Tabs}

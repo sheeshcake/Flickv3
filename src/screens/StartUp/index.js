@@ -22,7 +22,6 @@ const StartUp = ({ navigation }) => {
     const setDefaultProvider = async () => {
         try{
             dispatch(setProvider('flixhq'))
-            console.log(provider)
             await AsyncStorage.setItem('userProfile', JSON.stringify({
                 myList: '',
                 continueWatching: '',
