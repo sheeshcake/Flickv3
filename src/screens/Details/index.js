@@ -142,7 +142,7 @@ const Details = ({ navigation, route }) => {
                     getEpisodeVideoHQ(selectedEpisode.id);
                     break;
                 default:
-                    alert('An error Occured!')
+                    getEpisodeVideoHQ(selectedEpisode.id);
                     break;
             }
         }
@@ -176,7 +176,7 @@ const Details = ({ navigation, route }) => {
                 break;
             }
             default:
-                alert('An error Occured!')
+                getEpisodeVideoHQ(selectedEpisode.id);
                 break;
         }
     }, [])

@@ -135,44 +135,53 @@ const Splash = ({ navigation }) => {
         }, 3000)
     }
     const getDatas = async () => {
-        await dispatch(getprofileData(await AsyncStorage.getItem('userProfile')))
-        if(provider !== '') {
-            switch(provider) {
-                case "flixhq":
-                    laodDataFlixHQ()
-                    break;
-                case "solarmovie":
-                    laodDataSolarMovie()
-                    break;
-                case "fmovies":
-                    laodDataFMovies()
-                    break;
-                default:
-                    laodDataFlixHQ()
-                    break;
+        try{
+            await dispatch(getprofileData(await AsyncStorage.getItem('userProfile')))
+            if(provider !== '') {
+                switch(provider) {
+                    case "flixhq":
+                        laodDataFlixHQ()
+                        break;
+                    case "solarmovie":
+                        laodDataSolarMovie()
+                        break;
+                    case "fmovies":
+                        laodDataFMovies()
+                        break;
+                    default:
+                        laodDataFlixHQ()
+                        break;
+                }
+            } else {
+                laodDataFlixHQ()
             }
-        } else {
-            laodDataFlixHQ()
+        } catch (error) {
+            alert("Error: " + error);
         }
     }
 
     useEffect(() => {
-        if(provider !== '') {
-            switch(provider) {
-                case "flixhq":
-                    laodDataFlixHQ()
-                    break;
-                case "solarmovie":
-                    laodDataSolarMovie()
-                    break;
-                case "fmovies":
-                    laodDataFMovies()
-                    break;
-                default:
-                    laodDataFlixHQ()
-                    break;
-            }
-        } 
+        console.log(provider)
+        try{
+            if(provider !== '') {
+                switch(provider) {
+                    case "flixhq":
+                        laodDataFlixHQ()
+                        break;
+                    case "solarmovie":
+                        laodDataSolarMovie()
+                        break;
+                    case "fmovies":
+                        laodDataFMovies()
+                        break;
+                    default:
+                        laodDataFlixHQ()
+                        break;
+                }
+            } 
+        } catch (error) {
+            alert("Error: " + error);
+        }
     }, [provider])
 
     useEffect(() => {

@@ -28,7 +28,7 @@ const MovieCarousel = ({ movies, navigation }) => {
 
 
     const onViewRef = React.useRef((viewableItems) => {
-        const data = movies.find(data => data?.id == viewableItems.viewableItems[1]?.key);
+        const data = movies.find(data => data?.id == viewableItems.viewableItems[1]?.item?.id);
         setSelectedMovie(data)
     });
     return (
@@ -36,7 +36,7 @@ const MovieCarousel = ({ movies, navigation }) => {
             <Animated.FlatList
                 showsHorizontalScrollIndicator={false}
                 data={moviesData || []}
-                keyExtractor={(item) => item.id + item.name + "-carouselkey" + Math.floor(Math.random() * 10000) + 1}
+                keyExtractor={(item) => item.id + item.name + "-carouselkey"}
                 horizontal
                 bounces={false}
                 ref={ref}
@@ -73,6 +73,7 @@ const MovieCarousel = ({ movies, navigation }) => {
                                 width: ITEM_SIZE,
                                 height: ITEM_SIZE * 1.5
                             }}
+                            movieId={item.id}
                             key={item.id + index + item.name + "-carousel" + Math.floor(Math.random() * 10000) + 1}
                             onPress={() => {
                                 navigation.push('Details', {

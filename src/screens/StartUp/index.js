@@ -2,13 +2,48 @@ import { View, Text, Image } from 'react-native'
 import React from 'react'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { colors } from '~/constants/theme'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import {
     setProvider,
 } from '~/redux/profileSlice'
+import AsyncStorage from '@react-native-community/async-storage'
 
 const StartUp = ({ navigation }) => {
     const dispatch = useDispatch()
+    const {
+        myList,
+        continueWatching,
+        downloads,
+        provider,
+        open_subtitle,
+        open_subtitle_token,
+        player_type
+    } = useSelector(state => state.profile);
+    const setDefaultProvider = async () => {
+        try{
+            dispatch(setProvider('flixhq'))
+            console.log(provider)
+            await AsyncStorage.setItem('userProfile', JSON.stringify({
+                myList: '',
+                continueWatching: '',
+                downloads: '',
+                provider: 'flixhq',
+                open_subtitle: '',
+                open_subtitle_token: '',
+                player_type: 'legacy',
+            })).catch((error) => {
+                alert("An error occurred while saving your data")
+            });
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'Tabs' }]
+            })
+        } catch (e) {
+            alert(e)
+        }
+    }
+        
+
     return (
         <View
             style={{
@@ -38,13 +73,7 @@ const StartUp = ({ navigation }) => {
                 Unlimited movies, TV shows, and more.
             </Text>
             <TouchableOpacity
-                onPress={() => {
-                    dispatch(setProvider('flixhq'))
-                    navigation.reset({
-                        index: 0,
-                        routes: [{ name: 'Tabs' }]
-                    })
-                }}
+                onPress={setDefaultProvider}
                 style={{
                     backgroundColor: colors.red,
                     padding: 10,
