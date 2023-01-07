@@ -1,8 +1,36 @@
 import { View, Text, Modal, Image, TouchableOpacity, ScrollView, Linking } from 'react-native'
 import React, { useEffect, useState } from 'react'
+import AsyncStorage from '@react-native-community/async-storage';
 import { colors, sizes } from '../../constants/theme';
 
 const CreditsModal = ({ isOpen, onClose }) => {
+
+    const [yosi, setYosi] = useState(0);
+    
+    const getYosi = async () => {
+        try{
+            const yosi = await AsyncStorage.getItem('yosi');
+            console.log("yosi: " + yosi)
+            if(yosi !== null) {
+                setYosi(parseInt(yosi));
+            } else {
+                await AsyncStorage.setItem('yosi', '0');
+            }
+        } catch (e) {
+            setYosi(0);
+            console.log(e);
+        }
+    }
+
+    useEffect(() => {
+        getYosi();
+    }, []);
+
+
+    const addYosi = async () => {
+        setYosi(yosi + 1);
+        await AsyncStorage.setItem('yosi', `${yosi + 1}`);
+    }
 
 
     return (
@@ -55,7 +83,7 @@ const CreditsModal = ({ isOpen, onClose }) => {
                             color: colors.white,
                             marginBottom: 20
                         }}
-                    >1.4.0 beta</Text>
+                    >1.4.1 beta</Text>
                     <ScrollView>
                         <Text
                             style={{
@@ -78,7 +106,6 @@ const CreditsModal = ({ isOpen, onClose }) => {
                             {'\n\n'}
                             Watch and Download Free movies and TV Shows, HD movies directly on your mobile device.
                             {'\n\n'}
-                            BTW Elijah temporary pa ni nga credits gi tapolan ko
                         </Text>
                         <Text
                             style={{
@@ -98,22 +125,15 @@ const CreditsModal = ({ isOpen, onClose }) => {
                                 color: colors.white,
                             }}
                         >
-                            KrazyDevs LLC (not a real company){'\n\n'}
                             Main Developers{'\n'}
                             ----------------
                             {'\n'}
-                            Elijah Abgao{'\n'}(https://github.com/skeltonmod){'\n'}for the "theflix.to" provider
+                            Elijah Abgao{'\n'}(https://github.com/skeltonmod){'\n'}for the provider (Providers and Scrappers)
                             {'\n'}{'\n'}
-                            Wendale Dy{'\n'}(https://github.com/sheeshcake) {'\n'}for making this shit,
+                            Wendale Dy{'\n'}(https://github.com/sheeshcake) {'\n'}for making this shit (UI/UX, Main Features, Scrapper Maintenance)
                             {'\n\n'}
-                            ***************
-                            {'\n\n'}
-                            The Flower Boyz{'\n'}
                             ----------------
-                            {'\n'}
-                            Cedric Matthew Verdida{'\n'}The API pirate KING!{'\n'}{'\n'}
-                            Denny Marc Maquiling{'\n'}Big Boss{'\n'}{'\n'}
-                            James Patrick Apal{'\n'}ASA NA MAN ANG SPOFITY NATO NGA APP!!{'\n\n'}
+                            {'\n\n'}
                         </Text>
                         <Text
                             style={{
@@ -135,9 +155,26 @@ const CreditsModal = ({ isOpen, onClose }) => {
                             Any legal issues regarding the content on this application should be taken up with the actual file hosts and providers themselves as we are not affiliated with them. In case of copyright infringement, please directly contact the responsible parties or the streaming websites. The app is purely for educational and personal use. Flick(v3) does not host any content on the app, and has no control over what media is put up or taken down. Flick(v3) functions like any other search engine, such as Google. Flick(v3) does not host, upload or manage any videos, films or content. It simply crawls, aggregates and displayes links in a convenient, user-friendly interface. It merely scrapes 3rd-party websites that are publicly accessable via any regular web browser. It is the responsibility of user to avoid any actions that might violate the laws governing his/her locality. Use Flick(v3) at your own risk.
                         </Text>
                     </ScrollView>
+                    <TouchableOpacity
+                            style={{
+                                padding: 10,
+                                marginTop: 20,
+                                borderRadius: 5,
+                                backgroundColor: colors.white
+                            }}
+                            onPress={addYosi}
+                        >
+                            <Text
+                                style={{
+                                    color: colors.black,
+                                    fontSize: 20,
+                                    fontWeight: 'bold'
+                                }}
+                            >({yosi}x)Send a Yosi to devs 🚬</Text>
+                        </TouchableOpacity>
                     <View
                         style={{
-                            marginTop: 20,
+                            marginTop: 10,
                             flexDirection: 'row',
                             alignItems: 'center',
                             justifyContent: 'space-between'

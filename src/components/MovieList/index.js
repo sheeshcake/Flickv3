@@ -42,7 +42,7 @@ const MovieList = ({ title, movies, navigation }) => {
                             style={{
                                 justifyContent: 'center',
                             }}
-                            key={movie.id + title + "touch"}
+                            key={movie.id + title + "touch" + Math.floor(Math.random() * 10000) + 1}
                             activeOpacity={0.6}
                             onPress={() => {
                                 navigation.push('Details', {
@@ -55,17 +55,17 @@ const MovieList = ({ title, movies, navigation }) => {
                                     <View
                                         style={{
                                             position: 'absolute',
-                                            top: 5,
+                                            top: 4,
                                             right: 5,
                                             zIndex: 100,
                                             maxHeight: 20,
-                                            padding: 5,
+                                            padding: 4,
                                             borderRadius: 5,
                                             backgroundColor: movie?.quality === 'HD' ? colors.green : colors.red,
                                         }}
                                     >
                                         <Text style={{
-                                            fontSize: 10,
+                                            fontSize: 8,
                                             color: colors.white
                                         }}
                                         >

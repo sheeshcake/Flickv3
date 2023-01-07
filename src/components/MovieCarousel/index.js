@@ -36,7 +36,7 @@ const MovieCarousel = ({ movies, navigation }) => {
             <Animated.FlatList
                 showsHorizontalScrollIndicator={false}
                 data={moviesData || []}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item) => item.id + item.name + "-carouselkey" + Math.floor(Math.random() * 10000) + 1}
                 horizontal
                 bounces={false}
                 ref={ref}
@@ -58,7 +58,7 @@ const MovieCarousel = ({ movies, navigation }) => {
                         index * ITEM_SIZE,
                     ];
                     if (!item.image) {
-                        return <View key={'empty' + item.key + index} style={{ width: EMPTY_ITEM_SIZE }} />;
+                        return <View key={'empty' + item.key + index + Math.floor(Math.random() * 10000) + 1} style={{ width: EMPTY_ITEM_SIZE }} />;
                     }
                     const scale = scrollX.interpolate({
                         inputRange,
@@ -87,7 +87,7 @@ const MovieCarousel = ({ movies, navigation }) => {
                                     alignItems: 'center',
                                     transform: [{ scale }],
                                 }}
-                                key={item.id + index + "-animatedview"}
+                                key={item.id + index + "-animatedview" + Math.floor(Math.random() * 10000) + 1}
                             >
                                 {
                                     item?.quality && (
@@ -102,10 +102,10 @@ const MovieCarousel = ({ movies, navigation }) => {
                                                 borderRadius: 5,
                                                 backgroundColor: item?.quality === 'HD' ? colors.green : colors.red,
                                             }}
-                                            key={item.id + "-view"}
+                                            key={item.id + "-viewcarousel" + Math.floor(Math.random() * 10000) + 1}
                                         >
                                             <Text style={{
-                                                fontSize: 10,
+                                                fontSize: 8,
                                                 color: colors.white
                                             }}
                                             >
@@ -123,7 +123,7 @@ const MovieCarousel = ({ movies, navigation }) => {
                                         height: ITEM_SIZE * 1.5,
                                         width: ITEM_SIZE
                                     }}
-                                    key={item.id + "-carousel-image"}
+                                    key={item.id + "-carousel-image" + Math.floor(Math.random() * 10000) + 1}
                                 />
                             </Animated.View>
                         </TouchableOpacity>

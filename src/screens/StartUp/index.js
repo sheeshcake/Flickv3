@@ -39,7 +39,7 @@ const StartUp = ({ navigation }) => {
             </Text>
             <TouchableOpacity
                 onPress={() => {
-                    dispatch(setProvider('theflix'))
+                    dispatch(setProvider('flixhq'))
                     navigation.reset({
                         index: 0,
                         routes: [{ name: 'Tabs' }]
