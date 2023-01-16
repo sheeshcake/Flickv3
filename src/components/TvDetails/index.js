@@ -24,21 +24,32 @@ const TvDetails = ({ setSelectedSeason, seasonData, selectedSeason }) => {
             </View>
             {
                 seasonData?.length > 0 ? 
-                    <Picker
-                        selectedValue={selectedSeason?.id}
+                    <View
                         style={{
                             color: colors.white,
+                            borderColor: colors.white,
+                            borderWidth: 1,
+                            borderRadius: 10,
+                            margin: 10,
                         }}
-                        onValueChange={(itemValue, itemIndex) => {
-                            setSelectedSeason(seasonData.find(season => season.id === itemValue))
-                        }
-                        }>
-                        {seasonData?.map(season => (
-                            <Picker.Item style={{
-                                color: colors.black,
-                            }} key={season.id} label={season.title} value={season.id} />
-                        ))}
-                    </Picker>
+                    >
+                        <Picker
+                            themeVariant="dark"
+                            selectedValue={selectedSeason?.id}
+                            style={{
+                                color: colors.white,
+                            }}
+                            onValueChange={(itemValue, itemIndex) => {
+                                setSelectedSeason(seasonData.find(season => season.id === itemValue))
+                            }
+                            }>
+                            {seasonData?.map(season => (
+                                <Picker.Item style={{
+                                    color: colors.white,
+                                }} key={season.id} label={season.title} value={season.id} />
+                            ))}
+                        </Picker>
+                    </View>
                 : 
                 <View style={{
                     padding: 10,

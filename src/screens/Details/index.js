@@ -136,6 +136,7 @@ const Details = ({ navigation, route }) => {
 
     useEffect(() => {
         if (movie.type == "tv" && selectedEpisode.id) {
+            setVideo(null);
             switch (provider) {
                 case "solarmovie":
                     getEpisodeVideoSolar(selectedEpisode.id);
@@ -270,6 +271,7 @@ const Details = ({ navigation, route }) => {
                                     setSelectedEpisode={setSelectedEpisode}
                                     selectedEpisode={selectedEpisode}
                                     episodeData={episodeData}
+                                    isLoaded={video ? true : false}
                                 />
                             </View>
                         )

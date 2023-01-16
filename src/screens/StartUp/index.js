@@ -10,15 +10,6 @@ import AsyncStorage from '@react-native-community/async-storage'
 
 const StartUp = ({ navigation }) => {
     const dispatch = useDispatch()
-    const {
-        myList,
-        continueWatching,
-        downloads,
-        provider,
-        open_subtitle,
-        open_subtitle_token,
-        player_type
-    } = useSelector(state => state.profile);
     const setDefaultProvider = async () => {
         try{
             dispatch(setProvider('flixhq'))
@@ -29,14 +20,15 @@ const StartUp = ({ navigation }) => {
                 provider: 'flixhq',
                 open_subtitle: '',
                 open_subtitle_token: '',
-                player_type: 'youtube',
-            })).catch((error) => {
+                player_type: 'legacy',
+            })).then(() => {
+                navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'Splash' }]
+                })
+            }).catch((error) => {
                 alert("An error occurred while saving your data")
             });
-            navigation.reset({
-                index: 0,
-                routes: [{ name: 'Tabs' }]
-            })
         } catch (e) {
             alert(e)
         }

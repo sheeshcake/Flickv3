@@ -12,7 +12,7 @@ const initialState = {
     password: '',
   },
   open_subtitle_token: '',
-  player_type: 'youtube',
+  player_type: 'legacy',
 }
 
 export const profileSlice = createSlice({
@@ -21,7 +21,7 @@ export const profileSlice = createSlice({
   reducers: {
     getprofileData: (state, action) => {
       try{
-        const userData = JSON.parse(action.payload)
+        const userData = action.payload
         state.myList = userData.myList
         state.continueWatching = userData.continueWatching
         state.downloads = userData.downloads
@@ -30,7 +30,7 @@ export const profileSlice = createSlice({
         state.open_subtitle_token = userData.open_subtitle_token
         state.player_type = userData.player_type
       }catch(err){
-        alert("An error occurred while loading your data")
+        console.log(err)
       }
     },
     setProvider: (state, action) => {

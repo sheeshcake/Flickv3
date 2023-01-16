@@ -38,7 +38,7 @@ import {
 } from '~/providers/KrazyDevsScrapper/FMoviesProvider'
 
 ////////////////////
-import { fromPairs } from 'lodash'
+import _, { fromPairs } from 'lodash'
 
 const Splash = ({ navigation }) => {
     const loadingMessage = require('~/constants/loadingmessage.js');
@@ -48,6 +48,14 @@ const Splash = ({ navigation }) => {
         provider
     } = useSelector(state => state.profile)
 
+
+    const proceedToHome = () => {
+        navigation.reset({
+            index: 0,
+            routes: [{ name: 'Tabs' }]
+        })
+    }
+
     const laodDataFlixHQ = async () => {
         dispatch(setMovies(await getheroflixhq()));
         dispatch(setPopularMovie(await getheroflixhq('movie')));
@@ -56,7 +64,7 @@ const Splash = ({ navigation }) => {
         dispatch(setComedyMovie(await getgenreflixhq('comedy', 'movie')));
         dispatch(setRomanceMovie(await getgenreflixhq('romance', 'movie')));
         dispatch(setTvShow(await getheroflixhq('tv')));
-        getData()
+        proceedToHome();
     }
 
     const laodDataSolarMovie = async () => {
@@ -67,7 +75,7 @@ const Splash = ({ navigation }) => {
         dispatch(setComedyMovie(await getgenresolarmovie('comedy', 'movie')));
         dispatch(setRomanceMovie(await getgenresolarmovie('romance', 'movie')));
         dispatch(setTvShow(await getherosolarmovie('tv')));
-        getData()
+        proceedToHome();
     }
 
     const laodDataFMovies = async () => {
@@ -78,24 +86,18 @@ const Splash = ({ navigation }) => {
         dispatch(setComedyMovie(await getgenrefmovies('comedy', 'movie')));
         dispatch(setRomanceMovie(await getgenrefmovies('romance', 'movie')));
         dispatch(setTvShow(await getherofmovies('tv')));
-        getData()
+        proceedToHome();
     }
 
-    const getData = async () => {
+    const getLocalStorageData = async () => {
         try {
-            const value = await AsyncStorage.getItem('userData')
-            if (value !== null) {
+            const value = await AsyncStorage.getItem('userProfile')
+            console.log(value)
+            if (value) {
                 const userData = JSON.parse(value) || []
-                if (userData.length > 0) {
-                    dispatch(getData(userData))
-                }
-                navigation.reset({
-                    index: 0,
-                    routes: [{ name: 'Tabs' }],
-                })
+                dispatch(getprofileData(userData))
+                getMovieData();
             } else {
-                const userData = JSON.parse(value) || []
-                await AsyncStorage.setItem('userData', JSON.stringify(userData))
                 navigation.reset({
                     index: 0,
                     routes: [{ name: 'StartUp' }]
@@ -135,9 +137,8 @@ const Splash = ({ navigation }) => {
            changeMessage();
         }, 3000)
     }
-    const getDatas = async () => {
+    const getMovieData = async () => {
         try{
-            await dispatch(getprofileData(await AsyncStorage.getItem('userProfile')))
             if(provider !== '') {
                 switch(provider) {
                     case "flixhq":
@@ -176,7 +177,7 @@ const Splash = ({ navigation }) => {
                     default:
                         break;
                 }
-            } 
+            }
         } catch (error) {
             alert("Error: " + error);
         }
@@ -185,7 +186,7 @@ const Splash = ({ navigation }) => {
     useEffect(() => {
         changeMessage()
         loadPermission()
-        getDatas()
+        getLocalStorageData()
     }, [])
 
     return (

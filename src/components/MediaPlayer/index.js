@@ -111,6 +111,9 @@ const MediaPlayer = ({
                 onPausedChange={state => {
                     setPaused(state);
                 }}
+                onTapMore={() => {
+                    alert("Cumming soon!")
+                }}
                 videoHeight={videoHeight}
                 paused={paused}
                 autoPlay={true}

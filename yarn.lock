@@ -6214,10 +6214,10 @@ react-native-pip-android@^1.0.1:
   resolved "https://registry.yarnpkg.com/react-native-pip-android/-/react-native-pip-android-1.0.1.tgz#541717fae99685ebe1b10a431a1ed0cd5142ee01"
   integrity sha512-x6klZyInwovU9SCVUqlkSsAdvjt2IxHbqYy6+Axx0PVYvSK/WolWgvfIp0yFu8H3G2AQgcbDdCo3+AvSq7+YPg==
 
-react-native-reanimated-player@^2.2.1:
-  version "2.2.1"
-  resolved "https://registry.yarnpkg.com/react-native-reanimated-player/-/react-native-reanimated-player-2.2.1.tgz#8b9b90b05935ca5a47303f5a2179dd5250e6f87b"
-  integrity sha512-blSwEu62vDKO37mEziz/E3iyUXOUHYaumME5EwOzmboYtbj6qJZTFATDDevpetnl4lGhFCCetfCFIUOzfmaC2Q==
+react-native-reanimated-player@2.3.0:
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/react-native-reanimated-player/-/react-native-reanimated-player-2.3.0.tgz#4749a7552fa4b9c8bb9bc071531161ccfc8cfe05"
+  integrity sha512-Mo3xJAJr8zg97cAT4/+5bOmocKILHMDZ0xVZ8ndfA6FTt4vXQbBf0itomZi7lzRm73aZEhFaICmyHqb5IgxDnw==
   dependencies:
     "@gorhom/portal" "^1.0.12"
     lodash.padstart "^4.6.1"
