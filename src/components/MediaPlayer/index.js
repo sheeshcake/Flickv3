@@ -9,6 +9,10 @@ import Controls from './Controls';
 import VideoPlayer from 'react-native-reanimated-player';
 import { useSharedValue } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+//import CastButton from './CastButton';
+import GoogleCast, { useDevices, useRemoteMediaClient , CastButton } from 'react-native-google-cast'
+import { TouchableOpacity } from 'react-native-gesture-handler'
+import { useEffect } from 'react'
 
 const MediaPlayer = ({
     video,
@@ -32,6 +36,55 @@ const MediaPlayer = ({
     const [resize, setResize] = React.useState(1);
     const videoHeight = useSharedValue(sizes.width * (9 / 16));
     const isFullScreen = useSharedValue(false);
+    const client = useRemoteMediaClient();
+    const devices = useDevices()
+
+    useEffect(() => {
+        if(client) {
+            client.loadMedia({
+                mediaInfo: {
+                    contentUrl: video,
+                    contentType: 'video/mp4',
+                metadata: {
+                    images: [
+                        {
+                        url: imageUrl,
+                        },
+                    ],
+                    title: title,
+                    subtitle: subtitle
+                    },
+                    streamDuration: duration, // seconds
+                },
+                startTime: currentTime, // seconds
+            });
+        }
+    }, [client, devices])
+
+    const startCast = (video, image, title, subtitle, duration, currentTime, mediaType, moreDetails) => {
+        try {
+            GoogleCast.castMedia({
+                mediaUrl: video, // Stream media video uri
+                imageUrl: image, // Image video representative uri
+                title, // Media main title
+                subtitle, // Media subtitle
+                studio: 'Asap Developers', // Media or app owner
+                streamDuration: duration, // Stream duration in seconds
+                contentType: mediaType, // Optional media type, default is 'video/mp4'
+                playPosition: currentTime, // Stream play position in seconds
+                customData: {
+                    // Optional, your custom objec6t that will be passed to as customData to reciever
+                    mediaDetails: moreDetails,
+                },
+            })
+                .then(console.log('Playing.. '))
+                .catch(e => console.log('An error has ocurred, reason: ', e));
+        } catch (error) {
+            console.log('An error has ocurred, reason: ', error);
+        }
+
+    };
+
 
     const onPause = () => {
         setPlaying(false);
@@ -91,10 +144,6 @@ const MediaPlayer = ({
             <VideoPlayer
                 source={{
                     uri: video,
-                    headers: {
-                        "Origin": "https://theflix.to",
-                        "Referer": "https://theflix.to/",
-                    }
                 }}
                 showOnStart={true}
                 renderFullScreen={() => (
@@ -156,11 +205,6 @@ const MediaPlayer = ({
                 <Video
                     source={{
                         uri: video,
-                        headers: {
-                            'User-Agent' :'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:101.0) Gecko/20100101 Firefox/101.0',
-                            'Origin': 'https://theflix.to',
-                            'Referer': 'https://theflix.to/',
-                        }
                     }}
                     rate={1.0}
                     style={{
@@ -220,6 +264,22 @@ const MediaPlayer = ({
                     onResize={onResize}
                     videoStatus={status}
                     onDownload={onDownload}
+                    upperRightComponent={
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            {/* <TouchableOpacity
+                                onPress={() => {
+                                    startCast(video, imageUrl, title, subtitle, duration, currentTime, undefined, 'No details')
+                                }}
+                            >
+                                <Icon
+                                    name="cast"
+                                    size={sizes.width * 0.05}
+                                    color={colors.white}
+                                />
+                            </TouchableOpacity> */}
+                            <CastButton style={{ width: 30, height: 30 }} />
+                        </View>
+                    }
                 />
             </View>
         )

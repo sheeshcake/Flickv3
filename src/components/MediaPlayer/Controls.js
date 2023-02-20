@@ -25,7 +25,8 @@ const Controls = ({
     onHide,
     onPause,
     onPlay,
-    onDownload
+    onDownload,
+    upperRightComponent
 }) => {
     // const {
     //     useStartDownload
@@ -112,23 +113,7 @@ const Controls = ({
                 >
                     {title || "Movie"}
                 </Text>
-                <TouchableOpacity
-                    onPress={() => {
-                        link && onDownload()
-                    }}
-                    style={{
-                        padding: 10,
-                        opacity: 0,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                    }}
-                >
-                    <Icon
-                        name="download-outline"
-                        size={status == "error" ? 0 : sizes.width * 0.05}
-                        color={colors.white}
-                    />
-                </TouchableOpacity>
+                {upperRightComponent}
             </View>
             <TouchableOpacity
                 activeOpacity={1}
