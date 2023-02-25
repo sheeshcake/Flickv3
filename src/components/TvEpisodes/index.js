@@ -29,7 +29,7 @@ const TvEpisodes = ({ episodeData, setSelectedEpisode, selectedEpisode, isLoaded
                                 flexDirection: 'row',
                                 justifyContent: 'space-between',
                                 padding: 10,
-                                paddingTop: 15,
+                                margin: 10,
                                 borderWidth: 1,
                                 borderRadius: 10,
                                 borderColor: selectedEpisode?.id === episode.id ? colors.white : colors.black,
@@ -57,7 +57,6 @@ const TvEpisodes = ({ episodeData, setSelectedEpisode, selectedEpisode, isLoaded
                                         fontSize: 16,
                                         fontWeight: 'bold',
                                         color: colors.white,
-                                        paddingBottom: 5,
                                     }}
                                 >{episode.title}</Text>
                                 <Text

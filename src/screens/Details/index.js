@@ -1,18 +1,23 @@
-import { View, Text, Image, PermissionsAndroid } from 'react-native'
+import { View, Text, Image, ActivityIndicator } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { colors, sizes } from '~/constants/theme'
 import MediaPlayer from '~/components/MediaPlayer'
+import MovieList from '~/components/MovieList';
 import { ScrollView } from 'react-native-gesture-handler'
 // import providers here
 import {
     loadFlickSolar,
     loadSeriesEpisodeSolar,
-    loadTvDataSolar
+    loadFlickDetailsSolar,
+    loadTvDataSolar,
+    getRecommendedSolar
 } from "~/providers/KrazyDevsScrapper/SolarMovieProvider";
 import {
     loadFlickHQ,
     loadSeriesEpisodeHQ,
-    loadTvDataHQ
+    loadTvDataHQ,
+    getRecommendedHQ,
+    loadFlickDetailsHQ
 } from "~/providers/KrazyDevsScrapper/FlixHQProvider";
 
 ////////
@@ -34,6 +39,8 @@ const Details = ({ navigation, route }) => {
     } = useSelector(state => state.profile)
     const { movie } = route.params;
     const [video, setVideo] = useState(null);
+    const [recommended, setRecommended] = useState([]);
+    const [details, setDetails] = useState(null);
     const [status, setStatus] = useState('loading');
     const [seasonData, setSeasonData] = useState([]);
     const [episodeData, setEpisodeData] = useState([]);
@@ -101,6 +108,7 @@ const Details = ({ navigation, route }) => {
             setVideo(video.sources[0].url);
             setSubtitle(video.subtitles.find(sub => sub.lang.includes('English')).url);
         } catch (error) {
+            console.log(error)
             setStatus('error');
         }
     }
@@ -123,7 +131,7 @@ const Details = ({ navigation, route }) => {
     const getEpisodeVideoHQ = async (episode) => {
         setStatus('loading');
         try {
-            if(episode){
+            if (episode) {
                 const video = await loadSeriesEpisodeHQ(episode);
                 setVideo(video.sources[0].url);
                 setSubtitle(video.subtitles.find(sub => sub.lang.includes('English')).url);
@@ -131,6 +139,21 @@ const Details = ({ navigation, route }) => {
         } catch (err) {
             setStatus('error');
         }
+    }
+
+    const getDetailsHQ = async ()  => {
+        const details = await loadFlickDetailsHQ(movie.id);
+        const recommended = await getRecommendedHQ(movie.id);
+        setDetails(details)
+        setRecommended(recommended);
+    }
+
+    
+    const getDetailsSolar = async ()  => {
+        const recommended = await getRecommendedSolar(movie.id);
+        const details = await loadFlickDetailsSolar(movie.id);
+        setDetails(details);
+        setRecommended(recommended);
     }
 
 
@@ -162,15 +185,17 @@ const Details = ({ navigation, route }) => {
     }
     useEffect(() => {
         switch (provider) {
-            case "solarmovie":{
+            case "solarmovie": {
+                getDetailsSolar();
                 if (movie.type == "tv") {
                     getEpisodesSolar();
-                } else { 
+                } else {
                     getVideoSolar();
                 }
                 break;
             }
-            case "flixhq":{
+            case "flixhq": {
+                getDetailsHQ();
                 if (movie.type == "tv") {
                     getEpisodesHQ();
                 } else {
@@ -250,15 +275,118 @@ const Details = ({ navigation, route }) => {
                                     paddingBottom: 5,
                                 }}
                             >{movie.title}</Text>
+                            {details ? details?.mainData?.map((k) => {
+                                return (
+                                    <View
+                                        style={{
+                                            flex: 1,
+                                            flexDirection: "row",
+                                            marginBottom: 3
+                                        }}
+                                    >
+                                        <Text
+                                            style={{
+                                                color: colors.white,
+                                                textTransform: 'capitalize'
+                                            }}
+                                        >{k?.name}: {k?.data != "" ? k?.data : "No Data"}</Text>
+                                    </View>
+                                )
+                            }) :
+                                <View style={{
+                                    flex: 1,
+                                    padding: 10,
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                }}>
+                                    <ActivityIndicator size="large" color={colors.red} />
+                                </View>
+                            }
+                        </View>
+                    </View>
+                    {details ? (<>
+                        <View
+                            style={{
+                                marginTop: 10,
+                                paddingHorizontal: 5,
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    fontSize: 16,
+                                    marginBottom: 5,
+                                    color: colors.white,
+                                    fontWeight: 'bold',
+                                }}
+                            >
+                                Description
+                            </Text>
                             <Text
                                 style={{
                                     color: colors.white,
                                 }}
                             >
-                                {movie?.description || "No Description"}
+                                {details?.description || "No Description"}
                             </Text>
                         </View>
-                    </View>
+                        <View
+                            style={{
+                                marginTop: 10,
+                                paddingHorizontal: 5,
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    fontSize: 16,
+                                    marginBottom: 5,
+                                    color: colors.white,
+                                    fontWeight: 'bold',
+                                }}
+                            >
+                                Country
+                            </Text>
+                            <Text
+                                style={{
+                                    color: colors.white,
+                                }}
+                            >
+                                {details?.country || "No Data"}
+                            </Text>
+                        </View>
+
+                        <View
+                            style={{
+                                marginTop: 10,
+                                paddingHorizontal: 5,
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    fontSize: 16,
+                                    marginBottom: 5,
+                                    color: colors.white,
+                                    fontWeight: 'bold',
+                                }}
+                            >
+                                Production
+                            </Text>
+                            <Text
+                                style={{
+                                    color: colors.white,
+                                }}
+                            >
+                                {details?.production || "No Data"}
+                            </Text>
+                        </View>
+                    </>)
+                    :
+                        <View style={{
+                            padding: 10,
+                        }}>
+                            <ActivityIndicator size="large" color={colors.red} />
+                        </View>
+                    
+                    }
                     {
                         movie.type === "tv" && (
                             <View>
@@ -277,6 +405,7 @@ const Details = ({ navigation, route }) => {
                         )
                     }
                 </View>
+                {recommended?.length > 0 && <MovieList key={Math.floor(Math.random() * 10000) + 1} title="You May Also Like" movies={recommended} navigation={navigation} />}
             </ScrollView>
         </View>
     )
