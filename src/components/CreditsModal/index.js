@@ -81,7 +81,7 @@ const CreditsModal = ({ isOpen, onClose }) => {
                             color: colors.white,
                             marginBottom: 20
                         }}
-                    >1.4.6 beta</Text>
+                    >1.4.7 beta</Text>
                     <ScrollView>
                         <Text
                             style={{

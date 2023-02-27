@@ -18,13 +18,15 @@ const MediaPlayer = ({
     video,
     status,
     title,
+    type,
     movie,
     imageUrl,
     setStatus,
     onDownload,
     subtitle,
     navigation,
-    player_type
+    player_type,
+    onNext
 }) => {
     const [controlsHide, setControlsHide] = React.useState(false);
     const [playing, setPlaying] = React.useState(true);
@@ -34,6 +36,7 @@ const MediaPlayer = ({
     const [currentTime, setCurrentTime] = React.useState(0);
     const [fullscreen, setFullscreen] = React.useState(false);
     const [resize, setResize] = React.useState(1);
+    const [isReadyNext, setIsReadyNext] = React.useState(false);
     const videoHeight = useSharedValue(sizes.width * (9 / 16));
     const isFullScreen = useSharedValue(false);
     const client = useRemoteMediaClient();
@@ -98,7 +101,18 @@ const MediaPlayer = ({
         setPlaying(true);
     }
 
+    const checkTime = (time) => {
+        // const percent = ((duration - time) / duration) * 100;
+        // console.log(percent.toFixed(2) + "%");
+        //console.log((duration - time).toFixed(0) + " seconds");
+        if((duration - time).toFixed(0) < 150) {
+            return true;
+        }
+        return false;
+    }
+
     const handleProgress = ({ currentTime: time }) => {
+        if(type == "tv") setIsReadyNext(checkTime(time));
         setCurrentPosition(time);
         if (status != 'playing') {
             setStatus('playing')
@@ -254,6 +268,8 @@ const MediaPlayer = ({
                     onPlay={onPlay}
                     movie={movie}
                     resize={resize}
+                    readyNext={isReadyNext}
+                    onNext={onNext}
                     playing={playing}
                     currentPosition={currentPosition}
                     duration={duration}

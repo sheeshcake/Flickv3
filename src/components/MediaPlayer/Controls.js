@@ -12,6 +12,7 @@ const Controls = ({
     title,
     link,
     movie,
+    readyNext,
     playing,
     currentPosition,
     duration,
@@ -25,6 +26,7 @@ const Controls = ({
     onHide,
     onPause,
     onPlay,
+    onNext,
     onDownload,
     upperRightComponent
 }) => {
@@ -35,6 +37,7 @@ const Controls = ({
     const navigation = useNavigation();
     const [time, setTime] = useState();
     const [status, setStatus] = useState(status);
+    const [isReadyNext, setIsReadyNext] = useState(false);
     const [loading, setLoading] = useState('Loading...');
     const getRandomNumber = () => {
         const randomNumber = Math.floor(Math.random() * loadingMessage.default.length) + 1;
@@ -61,6 +64,14 @@ const Controls = ({
     useEffect(() => {
         setStatus(videoStatus);
     }, [videoStatus]);
+
+    useEffect(() => {
+        setIsReadyNext(readyNext);
+    }, [readyNext]);
+
+    const trim = (text) => {
+        return text?.length > 12 ? text.substring(0, 12) + "..." : text;
+    }
 
     return (
         <View
@@ -111,7 +122,7 @@ const Controls = ({
                         fontWeight: 'bold',
                     }}
                 >
-                    {title || "Movie"}
+                    {trim(title) || "Movie"}
                 </Text>
                 {upperRightComponent}
             </View>
@@ -238,6 +249,45 @@ const Controls = ({
                         color={colors.white}
                     />
                 </TouchableOpacity>
+            </View>
+            <View
+                style={{
+                    position: 'absolute',
+                    left: sizes.height * 0.8,
+                    bottom: sizes.height - (sizes.height * 0.94),
+                    alignItems: 'center',
+                    justifyContent: 'flex-end',
+                }}
+            >
+                {(isReadyNext && fullscreen) &&
+                    <TouchableOpacity
+                        style={{
+                            paddingHorizontal: 10,
+                            paddingVertical: 10,
+                            backgroundColor: colors.white,
+                            flexDirection: 'row',
+                            borderRadius: 5,
+                            alignItems: 'center',
+                        }}
+                        onPress={onNext}
+                    >
+                        <Icon
+                            name="fast-forward"
+                            size={sizes.width * 0.05}
+                            color={colors.black}
+                        />
+                        <Text
+                            style={{
+                                color: colors.black,
+                                fontSize: sizes.width * 0.04,
+                                fontWeight: 'bold',
+                                paddingHorizontal: 5,
+                            }}
+                        >
+                            Next Eposide
+                        </Text>
+                    </TouchableOpacity>
+                }
             </View>
         </View>
     )

@@ -38,6 +38,7 @@ const Details = ({ navigation, route }) => {
         player_type
     } = useSelector(state => state.profile)
     const { movie } = route.params;
+    const [episodeIndex, setEposodeIndex] = useState(0);
     const [video, setVideo] = useState(null);
     const [recommended, setRecommended] = useState([]);
     const [details, setDetails] = useState(null);
@@ -223,6 +224,7 @@ const Details = ({ navigation, route }) => {
                 title={movie.title}
                 video={video}
                 movie={movie}
+                type={movie.type}
                 status={status}
                 setStatus={(d) => setStatus(d)}
                 imageUrl={movie.image}
@@ -230,6 +232,24 @@ const Details = ({ navigation, route }) => {
                 subtitle={subtitle}
                 onDownload={() => onDownload()}
                 player_type={player_type}
+                onNext={() => {
+                    let Episodeindex = episodeData?.findIndex(x => x.id == selectedEpisode?.id)
+                    let Seasonindex = seasonData?.findIndex(x => x.id == selectedSeason?.id)
+                    if(Episodeindex >= 0 && Seasonindex >= 0){
+                        Episodeindex += 1;
+                        if(episodeData.length < Episodeindex - 1 ){
+                            Seasonindex += 1
+                            if(seasonData.length < Seasonindex -1 ){
+                                Seasonindex - 1;
+                            }
+                            setSelectedSeason(seasonData?.[Seasonindex])
+                            index = 0;
+                        }
+                        if(episodeData?.[Episodeindex]) {
+                            setSelectedEpisode(episodeData?.[Episodeindex])
+                        }
+                    }
+                }}
             />
             <ScrollView
                 showsVerticalScrollIndicator={false}
