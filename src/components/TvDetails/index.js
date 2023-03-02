@@ -3,8 +3,9 @@ import React, { useEffect } from 'react'
 import { Picker } from '@react-native-picker/picker';
 import tmdb from '~/api/tmdb'
 import solarmovie from '~/api/solarmovie';
-import {colors} from '~/constants/theme'
-
+import {colors, sizes} from '~/constants/theme'
+import SelectDropdown from 'react-native-select-dropdown'
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const TvDetails = ({ setSelectedSeason, seasonData, selectedSeason }) => {
 
@@ -24,32 +25,64 @@ const TvDetails = ({ setSelectedSeason, seasonData, selectedSeason }) => {
             </View>
             {
                 seasonData?.length > 0 ? 
-                    <View
-                        style={{
+                    <SelectDropdown
+                        data={seasonData}
+                        defaultValue={selectedSeason}
+                        buttonStyle={{
                             color: colors.white,
+                            backgroundColor: colors.black,
                             borderColor: colors.white,
                             borderWidth: 1,
                             borderRadius: 10,
                             margin: 10,
                         }}
-                    >
-                        <Picker
-                            themeVariant="dark"
-                            selectedValue={selectedSeason?.id}
-                            style={{
-                                color: colors.white,
-                            }}
-                            onValueChange={(itemValue, itemIndex) => {
-                                setSelectedSeason(seasonData.find(season => season.id === itemValue))
-                            }
-                            }>
-                            {seasonData?.map(season => (
-                                <Picker.Item style={{
-                                    color: colors.white,
-                                }} key={season.id} label={season.title} value={season.id} />
-                            ))}
-                        </Picker>
-                    </View>
+                        renderDropdownIcon={() => {
+                            return <Icon
+                                name="chevron-down"
+                                size={sizes.width * 0.08}
+                                color={colors.white}
+                            />
+                        }}
+                        dropdownIconPosition="right"
+                        buttonTextStyle={{
+                            color: colors.white
+                        }}
+                        onSelect={(selectedItem, index) => {
+                            setSelectedSeason(seasonData?.find(season => season.id === selectedItem?.id))
+                        }}
+                        buttonTextAfterSelection={(selectedItem, index) => {
+                            return selectedItem?.title
+                        }}
+                        rowTextForSelection={(item, index) => {
+                            return item.title
+                        }}
+                    />
+                    // <View
+                    //     style={{
+                    //         color: colors.white,
+                    //         borderColor: colors.white,
+                    //         borderWidth: 1,
+                    //         borderRadius: 10,
+                    //         margin: 10,
+                    //     }}
+                    // >
+                    //     <Picker
+                    //         themeVariant="dark"
+                    //         selectedValue={selectedSeason?.id}
+                    //         style={{
+                    //             color: colors.white,
+                    //         }}
+                    //         onValueChange={(itemValue, itemIndex) => {
+                    //             setSelectedSeason(seasonData.find(season => season.id === itemValue))
+                    //         }
+                    //         }>
+                    //         {seasonData?.map(season => (
+                    //             <Picker.Item style={{
+                    //                 color: colors.white,
+                    //             }} key={season.id} label={season.title} value={season.id} />
+                    //         ))}
+                    //     </Picker>
+                    // </View>
                 : 
                 <View style={{
                     padding: 10,
