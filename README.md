@@ -88,7 +88,7 @@ Credits to this awesome people!
 
 ## Related
 
-[markdownify-web](https://github.com/skeltonmod) - The Wash, web version of flick
+[The Wash](https://github.com/skeltonmod) - The Wash, web version of flick
 
 ## Support
 
