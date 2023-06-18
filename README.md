@@ -57,7 +57,7 @@ Download and install on your android device
 
 ## Download
 
-You can [download](https://github.com/sheeshcake/Flickv3/tree/master/builds/android) the latest APK and install!
+You can [download](https://github.com/sheeshcake/Flickv3/releases) the latest APK and install!
 
 
 ## Build Status
