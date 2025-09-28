@@ -6,6 +6,7 @@ import solarmovie from '~/api/solarmovie';
 import {colors, sizes} from '~/constants/theme'
 import SelectDropdown from 'react-native-select-dropdown'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { back } from 'react-native/Libraries/Animated/Easing';
 
 const TvDetails = ({ setSelectedSeason, seasonData, selectedSeason }) => {
 
@@ -45,16 +46,16 @@ const TvDetails = ({ setSelectedSeason, seasonData, selectedSeason }) => {
                         }}
                         dropdownIconPosition="right"
                         buttonTextStyle={{
-                            color: colors.white
+                            color: colors.white,
                         }}
                         onSelect={(selectedItem, index) => {
                             setSelectedSeason(seasonData?.find(season => season.id === selectedItem?.id))
                         }}
                         buttonTextAfterSelection={(selectedItem, index) => {
-                            return selectedItem?.title
+                            return selectedItem?.title || selectedItem?.name
                         }}
                         rowTextForSelection={(item, index) => {
-                            return item.title
+                            return item.title || item.name
                         }}
                     />
                     // <View

@@ -32,6 +32,8 @@ const Settings = ({ navigation }) => {
         { label: 'FlixHQ', value: 'flixhq', disabled: false},
         { label: 'Solar Movies', value: 'solarmovie', disabled: false },
         { label: 'FMovies (Broken) :(', value: 'fmovies', disabled: false },
+        { label: 'Vega Movies', value: 'vega', disabled: false },
+        { label: 'Provider', value: 'vidking', disabled: false },
     ]);
     const [players, setPlayers] = useState([
         { label: 'YoutubePlayer', value: 'youtube' },
@@ -416,17 +418,20 @@ const Settings = ({ navigation }) => {
                         </View>
                     )}
                 </View>
-                <View
-                    style={{
-                        flex: 1,
-                        flexDirection: 'column',
-                        backgroundColor: colors.darkGray,
-                        margin: sizes.width * 0.05,
-                        padding: sizes.width * 0.05,
-                        borderRadius: 5,
-                        marginBottom: sizes.width * 0.05,
-                    }}
-                >
+                
+                {/* Container for both disabled sections with lock overlay */}
+                <View style={{ position: 'relative' }}>
+                    <View
+                        style={{
+                            flex: 1,
+                            flexDirection: 'column',
+                            backgroundColor: colors.darkGray,
+                            margin: sizes.width * 0.05,
+                            padding: sizes.width * 0.05,
+                            borderRadius: 5,
+                            marginBottom: sizes.width * 0.05,
+                        }}
+                    >
                     <Text
                         style={{
                             fontSize: 18,
@@ -453,6 +458,7 @@ const Settings = ({ navigation }) => {
                             marginHorizontal: 5,
                             marginVertical: 5,
                         }}
+                        enabled={false}
                         selectedValue={selectedProvider}
                         onValueChange={(itemValue, itemIndex) => {
                             setSelectedProvider(itemValue)
@@ -465,15 +471,16 @@ const Settings = ({ navigation }) => {
                     <Text
                         style={{
                             fontSize: 14,
-                            color: colors.white,
+                            color: colors.gray,
                             marginBottom: sizes.width * 0.01,
                         }}
                     >
-                        Changing Provider needs the app to restart.. :D
+                        Provider selection is currently disabled.
                     </Text>
                     <TouchableOpacity
+                        disabled={true}
                         onPress={() => {
-                            updateProvider()
+                            // updateProvider() - Disabled
                         }}
                         style={{
                             flex: 1,
@@ -482,10 +489,11 @@ const Settings = ({ navigation }) => {
                             justifyContent: 'center',
                             flexDirection: 'row',
                             alignItems: 'center',
-                            backgroundColor: colors.white,
+                            backgroundColor: colors.gray,
                             paddingVertical: 10,
                             paddingHorizontal: 10,
                             borderRadius: 5,
+                            opacity: 0.5,
                         }}
                     >
                         <Icon
@@ -527,11 +535,11 @@ const Settings = ({ navigation }) => {
                     <Text
                         style={{
                             fontSize: 14,
-                            color: colors.white,
+                            color: colors.gray,
                             marginBottom: sizes.width * 0.01,
                         }}
                     >
-                        Select a video player you want to use.. :D
+                        Video player selection is currently disabled.
                     </Text>
                     <Picker
                         style={{
@@ -541,6 +549,7 @@ const Settings = ({ navigation }) => {
                             marginHorizontal: 5,
                             marginVertical: 5,
                         }}
+                        enabled={false}
                         selectedValue={player}
                         onValueChange={(itemValue, itemIndex) => {
                             setPlayer(itemValue)
@@ -559,8 +568,9 @@ const Settings = ({ navigation }) => {
                     >
                     </Text>
                     <TouchableOpacity
+                        disabled={true}
                         onPress={() => {
-                            updatePlayerType()
+                            // updatePlayerType() - Disabled
                         }}
                         style={{
                             flex: 1,
@@ -569,10 +579,11 @@ const Settings = ({ navigation }) => {
                             justifyContent: 'center',
                             flexDirection: 'row',
                             alignItems: 'center',
-                            backgroundColor: colors.white,
+                            backgroundColor: colors.gray,
                             paddingVertical: 10,
                             paddingHorizontal: 5,
                             borderRadius: 5,
+                            opacity: 0.5,
                         }}
                     >
                         <Icon
@@ -591,6 +602,62 @@ const Settings = ({ navigation }) => {
                         </Text>
                     </TouchableOpacity>
                 </View>
+                
+                {/* Big Lock Overlay */}
+                <View
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        borderRadius: 5,
+                        margin: sizes.width * 0.05,
+                    }}
+                >
+                    <View
+                        style={{
+                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                            borderRadius: 50,
+                            padding: 20,
+                            borderWidth: 2,
+                            borderColor: 'rgba(255, 255, 255, 0.3)',
+                        }}
+                    >
+                        <Icon 
+                            name="lock" 
+                            size={60} 
+                            color={colors.white} 
+                        />
+                    </View>
+                    <Text
+                        style={{
+                            color: colors.white,
+                            fontSize: 18,
+                            fontWeight: 'bold',
+                            marginTop: 15,
+                            textAlign: 'center',
+                        }}
+                    >
+                        Settings Locked
+                    </Text>
+                    <Text
+                        style={{
+                            color: colors.white,
+                            fontSize: 14,
+                            marginTop: 5,
+                            textAlign: 'center',
+                            opacity: 0.8,
+                        }}
+                    >
+                        Disabled until further notice
+                    </Text>
+                </View>
+            </View>
+            
             </ScrollView>
         </View>
     );

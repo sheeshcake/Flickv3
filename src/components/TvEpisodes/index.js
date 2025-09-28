@@ -43,6 +43,9 @@ const TvEpisodes = ({ episodeData, setSelectedEpisode, selectedEpisode, isLoaded
                                     width: 100,
                                     height: 50,
                                 }}
+                                onError={() => {
+                                    console.log('Failed to load episode image:', episode?.image);
+                                }}
                             />
                             <View
                                 style={{

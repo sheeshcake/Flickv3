@@ -12,12 +12,11 @@ const StartUp = ({ navigation }) => {
     const dispatch = useDispatch()
     const setDefaultProvider = async () => {
         try{
-            dispatch(setProvider('flixhq'))
             await AsyncStorage.setItem('userProfile', JSON.stringify({
                 myList: '',
                 continueWatching: '',
                 downloads: '',
-                provider: 'flixhq',
+                provider: 'vidking',
                 open_subtitle: '',
                 open_subtitle_token: '',
                 player_type: 'legacy',

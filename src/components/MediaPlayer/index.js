@@ -13,6 +13,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import GoogleCast, { useDevices, useRemoteMediaClient , CastButton } from 'react-native-google-cast'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { useEffect } from 'react'
+import WebView from 'react-native-webview'
 
 const MediaPlayer = ({
     video,
@@ -153,7 +154,45 @@ const MediaPlayer = ({
         }
     })
 
-    if (player_type == 'youtube') {
+    if (video && video.isIframe) {
+        return (
+            <View style={{ 
+                height: fullscreen ? sizes.width : sizes.height * 0.3,
+                width: fullscreen ? sizes.height : sizes.width,
+            }}>
+                <WebView
+                    source={{ uri: video.url }}
+                    style={{ width: '100%', height: '100%' }}
+                    allowsFullscreenVideo={true}
+                    javaScriptEnabled={true}
+                    domStorageEnabled={true}
+                    startInLoadingState={true}
+                    renderLoading={() => (
+                        <View style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            backgroundColor: colors.black
+                        }}>
+                            <Text style={{ color: colors.white }}>Loading player...</Text>
+                        </View>
+                    )}
+                    onLoad={() => {
+                        console.log('Iframe loaded successfully');
+                        setStatus('playing');
+                    }}
+                    onError={(error) => {
+                        console.error('Iframe loading error:', error);
+                        setStatus('error');
+                    }}
+                />
+            </View>
+        )
+    } else if (player_type == 'youtube') {
         return (
             <VideoPlayer
                 source={{

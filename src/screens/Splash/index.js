@@ -37,6 +37,16 @@ import {
     getgenrefmovies,
 } from '~/providers/KrazyDevsScrapper/FMoviesProvider'
 
+import {
+    getheroVega,
+    getgenreVega,
+} from '~/providers/KrazyDevsScrapper/VegaProvider'
+
+import {
+    getheroVidking,
+    getgenreVidking,
+} from '~/providers/KrazyDevsScrapper/VidkingProvider'
+
 ////////////////////
 import _, { fromPairs } from 'lodash'
 
@@ -68,6 +78,7 @@ const Splash = ({ navigation }) => {
     }
 
     const laodDataSolarMovie = async () => {
+        proceedToHome();
         dispatch(setMovies(await getherosolarmovie()));
         dispatch(setPopularMovie(await getherosolarmovie('movie')));
         dispatch(setHorrorMovie(await getgenresolarmovie('horror', 'movie')));
@@ -86,6 +97,28 @@ const Splash = ({ navigation }) => {
         dispatch(setComedyMovie(await getgenrefmovies('comedy', 'movie')));
         dispatch(setRomanceMovie(await getgenrefmovies('romance', 'movie')));
         dispatch(setTvShow(await getherofmovies('tv')));
+        proceedToHome();
+    }
+
+    const laodDataVega = async () => {
+        dispatch(setMovies(await getheroVega()));
+        dispatch(setPopularMovie(await getheroVega('movie')));
+        dispatch(setHorrorMovie(await getgenreVega('horror', 'movie')));
+        dispatch(setActionMovie(await getgenreVega('action', 'movie')));
+        dispatch(setComedyMovie(await getgenreVega('comedy', 'movie')));
+        dispatch(setRomanceMovie(await getgenreVega('romance', 'movie')));
+        dispatch(setTvShow(await getheroVega('tv')));
+        proceedToHome();
+    }
+    
+    const laodDataVidking = async () => {
+        dispatch(setMovies(await getheroVidking()));
+        dispatch(setPopularMovie(await getheroVidking('movie')));
+        dispatch(setHorrorMovie(await getgenreVidking('horror', 'movie')));
+        dispatch(setActionMovie(await getgenreVidking('action', 'movie')));
+        dispatch(setComedyMovie(await getgenreVidking('comedy', 'movie')));
+        dispatch(setRomanceMovie(await getgenreVidking('romance', 'movie')));
+        dispatch(setTvShow(await getheroVidking('tv')));
         proceedToHome();
     }
 
@@ -150,6 +183,12 @@ const Splash = ({ navigation }) => {
                     case "fmovies":
                         laodDataFMovies()
                         break;
+                    case "vega":
+                        laodDataVega()
+                        break;
+                    case "vidking":
+                        laodDataVidking()
+                        break;
                     default:
                         laodDataFlixHQ()
                         break;
@@ -173,6 +212,12 @@ const Splash = ({ navigation }) => {
                         break;
                     case "fmovies":
                         laodDataFMovies()
+                        break;
+                    case "vega":
+                        laodDataVega()
+                        break;
+                    case "vidking":
+                        laodDataVidking()
                         break;
                     default:
                         break;

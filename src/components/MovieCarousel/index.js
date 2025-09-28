@@ -1,232 +1,388 @@
-import * as React from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import {
     View,
     Image,
     Animated,
     Platform,
     Text,
+    ActivityIndicator,
+    ImageBackground,
+    Dimensions,
 } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import { color } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import LinearGradient from 'react-native-linear-gradient';
 import { colors, sizes } from '~/constants/theme';
 
-const SPACING = 10;
-const ITEM_SIZE = Platform.OS === 'ios' ? sizes.width * 0.50 : sizes.width * 0.35;
-const EMPTY_ITEM_SIZE = (sizes.width - ITEM_SIZE) / 2;
+const { width, height } = Dimensions.get('window');
+const HERO_HEIGHT = height * 0.5; // Extended height for better blending
+const SPACING = 20;
 
-
-
-const MovieCarousel = ({ movies, navigation }) => {
-    const scrollX = React.useRef(new Animated.Value(0)).current;
-    const [moviesData, setMovies] = React.useState([]);
-    const [selectedMovie, setSelectedMovie] = React.useState([]);
-    const ref = React.useRef(null);
-    React.useEffect(() => {
-        setMovies([{ key: 'empty-left' }, ...movies, { key: 'empty-right' }]);
+const NetflixHeroCarousel = ({ movies = [], navigation }) => {
+    const scrollX = useRef(new Animated.Value(0)).current;
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [moviesData, setMovies] = useState([]);
+    const [imageErrors, setImageErrors] = useState({});
+    const flatListRef = useRef(null);
+    
+    useEffect(() => {
+        if (movies && movies.length > 0) {
+            setMovies(movies);
+            // Auto-scroll every 5 seconds
+            const timer = setInterval(() => {
+                if (flatListRef.current && movies.length > 1) {
+                    setCurrentIndex(prev => {
+                        const nextIndex = (prev + 1) % movies.length;
+                        flatListRef.current.scrollToIndex({ 
+                            index: nextIndex, 
+                            animated: true 
+                        });
+                        return nextIndex;
+                    });
+                }
+            }, 10000);
+            
+            return () => clearInterval(timer);
+        }
     }, [movies]);
 
+    const handleScroll = useCallback((event) => {
+        const scrollPosition = event.nativeEvent.contentOffset.x;
+        const index = Math.round(scrollPosition / width);
+        setCurrentIndex(index);
+    }, []);
+    
+    const handleImageError = useCallback((itemId) => {
+        setImageErrors(prev => ({ ...prev, [itemId]: true }));
+    }, []);
 
-    const onViewRef = React.useRef((viewableItems) => {
-        const data = movies.find(data => data?.id == viewableItems.viewableItems[1]?.item?.id);
-        setSelectedMovie(data)
-    });
-    return (
-        <View>
-            <Animated.FlatList
-                showsHorizontalScrollIndicator={false}
-                data={moviesData || []}
-                keyExtractor={(item) => item.id + item.name + "-carouselkey"}
-                horizontal
-                bounces={false}
-                ref={ref}
-                decelerationRate={Platform.OS === 'ios' ? 0 : 0.90}
-                renderToHardwareTextureAndroid
-                contentContainerStyle={{ alignItems: 'center' }}
-                snapToInterval={ITEM_SIZE}
-                onViewableItemsChanged={onViewRef.current}
-                snapToAlignment='start'
-                onScroll={Animated.event(
-                    [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-                    { useNativeDriver: false }
-                )}
-                scrollEventThrottle={16}
-                renderItem={({ item, index }) => {
-                    const inputRange = [
-                        (index - 2) * ITEM_SIZE,
-                        (index - 1) * ITEM_SIZE,
-                        index * ITEM_SIZE,
-                    ];
-                    if (!item.image) {
-                        return <View key={'empty' + item.key + index + Math.floor(Math.random() * 10000) + 1} style={{ width: EMPTY_ITEM_SIZE }} />;
-                    }
-                    const scale = scrollX.interpolate({
-                        inputRange,
-                        outputRange: [0.8, 1, 0.8],
-                        extrapolate: 'clamp',
-                    });
+    const renderHeroItem = ({ item, index }) => {
+        if (!item || !item.id) return null;
 
+        const opacity = scrollX.interpolate({
+            inputRange: [
+                (index - 1) * width,
+                index * width,
+                (index + 1) * width,
+            ],
+            outputRange: [0.3, 1, 0.3],
+            extrapolate: 'clamp',
+        });
 
-                    return (
-                        <TouchableOpacity
-                            style={{
-                                width: ITEM_SIZE,
-                                height: ITEM_SIZE * 1.5
-                            }}
-                            movieId={item.id}
-                            key={item.id + index + item.name + "-carousel" + Math.floor(Math.random() * 10000) + 1}
-                            onPress={() => {
-                                navigation.push('Details', {
-                                    movie: item,
-                                })
-                            }}
-                        >
-                            <Animated.View
-                                style={{
-                                    backgroundColor: colors.gray,
-                                    marginHorizontal: SPACING,
-                                    alignItems: 'center',
-                                    transform: [{ scale }],
-                                }}
-                                key={item.id + index + "-animatedview" + Math.floor(Math.random() * 10000) + 1}
-                            >
-                                {
-                                    item?.quality && (
-                                        <View
-                                            style={{
-                                                position: 'absolute',
-                                                top: 5,
-                                                right: -5,
-                                                zIndex: 100,
-                                                maxHeight: 20,
-                                                padding: 5,
-                                                borderRadius: 5,
-                                                backgroundColor: item?.quality === 'HD' ? colors.green : colors.red,
-                                            }}
-                                            key={item.id + "-viewcarousel" + Math.floor(Math.random() * 10000) + 1}
-                                        >
-                                            <Text style={{
-                                                fontSize: 8,
-                                                color: colors.white
-                                            }}
-                                            >
-                                                {item?.quality}
-                                            </Text>
-                                        </View>
-                                    )
-                                }
-                                <Image
-                                    source={{
-                                        uri: item.image,
-                                    }}
-                                    style={{
-                                        borderRadius: 10,
-                                        height: ITEM_SIZE * 1.5,
-                                        width: ITEM_SIZE
-                                    }}
-                                    key={item.id + "-carousel-image" + Math.floor(Math.random() * 10000) + 1}
-                                />
-                            </Animated.View>
-                        </TouchableOpacity>
-                    );
-                }}
-            />
-            <View
+        const scale = scrollX.interpolate({
+            inputRange: [
+                (index - 1) * width,
+                index * width,
+                (index + 1) * width,
+            ],
+            outputRange: [0.9, 1, 0.9],
+            extrapolate: 'clamp',
+        });
+
+        const hasImageError = imageErrors[item.id];
+        const backgroundImage = item.backdrop_path || item.image;
+
+        return (
+            <Animated.View
                 style={{
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    marginTop: 10,
+                    width,
+                    height: HERO_HEIGHT,
+                    opacity,
+                    transform: [{ scale }],
                 }}
             >
-                <Text
-                    style={{
-                        color: colors.white,
-                        fontSize: 20,
-                    }}
-                >
-                    {selectedMovie?.title}
-                </Text>
-                <View
-                    style={{
-                        flexDirection: 'row',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        paddingHorizontal: SPACING,
-                        width: sizes.width * 0.7,
-                        paddingVertical: 5,
-                    }}
-                >
-                    {/* <TouchableOpacity
-                        onPress={() => {
-                            console.log('heart')
-                        }}
+                {hasImageError || !backgroundImage ? (
+                    <View
                         style={{
-                            padding: 10,
-                            alignItems: 'center',
+                            flex: 1,
+                            backgroundColor: colors.black,
                             justifyContent: 'center',
-                        }}
-                    >
-                        <Icon
-                            name="plus-circle-outline"
-                            size={sizes.width * 0.05}
-                            color={colors.white}
-                        />
-                        <Text>My List</Text>
-                    </TouchableOpacity> */}
-                    <TouchableOpacity
-                        onPress={() => {
-                            navigation.push('Details', {
-                                movie: selectedMovie,
-                            })
-                        }}
-                        style={{
-                            paddingHorizontal: 10,
-                            paddingVertical: 10,
-                            backgroundColor: colors.white,
-                            flexDirection: 'row',
-                            borderRadius: 5,
                             alignItems: 'center',
                         }}
                     >
-                        <Icon
-                            name="play"
-                            size={sizes.width * 0.05}
-                            color={colors.black}
-                        />
-                        <Text
+                        <Icon name="image-off" size={60} color={colors.white} />
+                        <Text style={{
+                            color: colors.white,
+                            fontSize: 16,
+                            marginTop: 10,
+                            textAlign: 'center'
+                        }}>
+                            {item.title || 'No Image Available'}
+                        </Text>
+                    </View>
+                ) : (
+                    <ImageBackground
+                        source={{ uri: backgroundImage }}
+                        style={{ flex: 1 }}
+                        resizeMode="cover"
+                        onError={() => handleImageError(item.id)}
+                    >
+                        {/* Top gradient overlay - blend with header */}
+                        <LinearGradient
+                            colors={['rgba(0,0,0,1)', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.1)', 'transparent']}
                             style={{
-                                color: colors.black,
-                                fontSize: sizes.width * 0.04,
-                                fontWeight: 'bold',
-                                paddingHorizontal: 5,
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                height: height * 0.3,
+                                zIndex: 1,
+                            }}
+                        />
+                        
+                        {/* Bottom gradient overlay - blend with Top Rated section */}
+                        <LinearGradient
+                            colors={['transparent', 'rgba(0,0,0,0.2)', 'rgba(0,0,0,0.6)', 'rgba(0,0,0,0.9)', '#000000']}
+                            style={{
+                                position: 'absolute',
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                height: height * 0.5,
+                                zIndex: 1,
+                            }}
+                        />
+
+                        {/* Quality badge */}
+                        {item.quality && (
+                            <View
+                                style={{
+                                    position: 'absolute',
+                                    top: 60,
+                                    right: 20,
+                                    zIndex: 2,
+                                    paddingHorizontal: 8,
+                                    paddingVertical: 4,
+                                    borderRadius: 4,
+                                    backgroundColor: item.quality === 'HD' ? '#00C851' : 
+                                                   item.quality === '4K' ? '#007bff' :
+                                                   item.quality === 'CAM' ? '#ff4444' : '#ff8800',
+                                }}
+                            >
+                                <Text style={{
+                                    fontSize: 12,
+                                    color: colors.white,
+                                    fontWeight: 'bold'
+                                }}>
+                                    {item.quality}
+                                </Text>
+                            </View>
+                        )}
+
+                        {/* Content overlay */}
+                        <View
+                            style={{
+                                position: 'absolute',
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                paddingHorizontal: SPACING,
+                                paddingBottom: 60,
+                                zIndex: 2,
                             }}
                         >
-                            Play
-                        </Text>
-                    </TouchableOpacity>
-                    {/* <TouchableOpacity
-                        onPress={() => {
-                            console.log('profile')
-                        }}
-                        style={{
-                            padding: 10,
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                        }}
-                    >
-                        <Icon
-                            name="information-outline"
-                            size={sizes.width * 0.05}
-                            color={colors.white}
-                        />
-                        <Text>Details</Text>
-                    </TouchableOpacity> */}
-                </View>
-            </View>
 
+                            {/* Movie title */}
+                            <Text
+                                style={{
+                                    color: colors.white,
+                                    fontSize: 28,
+                                    fontWeight: 'bold',
+                                    marginBottom: 8,
+                                    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+                                    textShadowOffset: { width: 0, height: 1 },
+                                    textShadowRadius: 3,
+                                }}
+                                numberOfLines={2}
+                            >
+                                {item.title || item.name || 'Unknown Title'}
+                            </Text>
+
+                            {/* Movie overview */}
+                            {item.overview && (
+                                <Text
+                                    style={{
+                                        color: colors.white,
+                                        fontSize: 14,
+                                        lineHeight: 20,
+                                        marginBottom: 16,
+                                        opacity: 0.9,
+                                        textShadowColor: 'rgba(0, 0, 0, 0.5)',
+                                        textShadowOffset: { width: 0, height: 1 },
+                                        textShadowRadius: 2,
+                                    }}
+                                    numberOfLines={3}
+                                >
+                                    {item.overview}
+                                </Text>
+                            )}
+
+                            {/* Action buttons */}
+                            <View
+                                style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                {/* Play button */}
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        if (item && item.id && navigation) {
+                                            navigation.push('Details', {
+                                                movie: item,
+                                            });
+                                        }
+                                    }}
+                                    style={{
+                                        flex: 1,
+                                        flexDirection: 'row',
+                                        backgroundColor: colors.white,
+                                        paddingVertical: 12,
+                                        paddingHorizontal: 20,
+                                        borderRadius: 6,
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        marginRight: 10,
+                                    }}
+                                    activeOpacity={0.8}
+                                >
+                                    <Icon
+                                        name="play"
+                                        size={20}
+                                        color={colors.black}
+                                    />
+                                    <Text
+                                        style={{
+                                            color: colors.black,
+                                            fontSize: 16,
+                                            fontWeight: 'bold',
+                                            marginLeft: 8,
+                                        }}
+                                    >
+                                        Play
+                                    </Text>
+                                </TouchableOpacity>
+
+                                {/* My List button
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        console.log('Add to list:', item.title);
+                                    }}
+                                    style={{
+                                        flexDirection: 'row',
+                                        backgroundColor: 'rgba(109, 109, 110, 0.7)',
+                                        paddingVertical: 12,
+                                        paddingHorizontal: 20,
+                                        borderRadius: 6,
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        borderWidth: 1,
+                                        borderColor: 'rgba(255, 255, 255, 0.3)',
+                                    }}
+                                    activeOpacity={0.8}
+                                >
+                                    <Icon
+                                        name="plus"
+                                        size={20}
+                                        color={colors.white}
+                                    />
+                                    <Text
+                                        style={{
+                                            color: colors.white,
+                                            fontSize: 16,
+                                            fontWeight: '600',
+                                            marginLeft: 8,
+                                        }}
+                                    >
+                                        My List
+                                    </Text>
+                                </TouchableOpacity> */}
+                            </View>
+                        </View>
+                    </ImageBackground>
+                )}
+            </Animated.View>
+        );
+    };
+
+    if (!moviesData || moviesData.length === 0) {
+        return (
+            <View style={{
+                height: HERO_HEIGHT,
+                backgroundColor: colors.black,
+                justifyContent: 'center',
+                alignItems: 'center'
+            }}>
+                <ActivityIndicator size="large" color={colors.white} />
+                <Text style={{
+                    color: colors.white,
+                    fontSize: 16,
+                    marginTop: 10
+                }}>
+                    Loading...
+                </Text>
+            </View>
+        );
+    }
+    
+    return (
+        <View style={{ backgroundColor: '#000000' }}>
+            <Animated.FlatList
+                ref={flatListRef}
+                data={moviesData}
+                renderItem={renderHeroItem}
+                keyExtractor={(item, index) => `hero-${item.id || index}`}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                onScroll={Animated.event(
+                    [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+                    { 
+                        useNativeDriver: false,
+                        listener: handleScroll
+                    }
+                )}
+                scrollEventThrottle={16}
+                decelerationRate="fast"
+                snapToInterval={width}
+                snapToAlignment="start"
+                removeClippedSubviews={false}
+                getItemLayout={(data, index) => ({
+                    length: width,
+                    offset: width * index,
+                    index,
+                })}
+            />
+            
+            {/* Page indicators */}
+            <View
+                style={{
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    position: 'absolute',
+                    bottom: 20,
+                    left: 0,
+                    right: 0,
+                    zIndex: 3,
+                }}
+            >
+                {moviesData.map((_, index) => (
+                    <Animated.View
+                        key={index}
+                        style={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: 4,
+                            backgroundColor: currentIndex === index ? colors.white : 'rgba(255, 255, 255, 0.3)',
+                            marginHorizontal: 4,
+                        }}
+                    />
+                ))}
+            </View>
         </View>
     );
-}
+};
 
-export default MovieCarousel
+export default NetflixHeroCarousel;

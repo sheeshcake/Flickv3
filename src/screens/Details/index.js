@@ -3,7 +3,9 @@ import React, { useEffect, useState } from 'react'
 import { colors, sizes } from '~/constants/theme'
 import MediaPlayer from '~/components/MediaPlayer'
 import MovieList from '~/components/MovieList';
-import { ScrollView } from 'react-native-gesture-handler'
+import { WebView } from 'react-native-webview';
+import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler'
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 // import providers here
 import {
     loadFlickSolar,
@@ -19,6 +21,25 @@ import {
     getRecommendedHQ,
     loadFlickDetailsHQ
 } from "~/providers/KrazyDevsScrapper/FlixHQProvider";
+import {
+    getVegaDetails,
+    getVegaStreams,
+    loadFlickVega,
+    loadFlickDetailsVega,
+    loadTvDataVega,
+    loadSeriesEpisodeVega,
+    getRecommendedVega
+} from "~/providers/KrazyDevsScrapper/VegaProvider";
+
+import {
+    getheroVidking,
+    getgenreVidking,
+    loadFlickVidking,
+    loadTvDataVidking,
+    loadSeriesEpisodeVidking,
+    getRecommendedVidking,
+    getDetailsVidking
+} from "~/providers/KrazyDevsScrapper/VidkingProvider";
 
 ////////
 import TvDetails from '~/components/TvDetails'
@@ -157,6 +178,122 @@ const Details = ({ navigation, route }) => {
         setRecommended(recommended);
     }
 
+    const getDetailsVega = async () => {
+        const details = await loadFlickDetailsVega(movie.url || movie.link);
+        const recommended = await getRecommendedVega();
+        setDetails(details);
+        setRecommended(recommended);
+    }
+
+    const getVideoVega = async () => {
+        try {
+            setStatus('loading');
+            const videoLink = await loadFlickVega(movie.url || movie.link, 'movie');
+            setVideo(videoLink);
+            setStatus('success');
+        } catch (error) {
+            console.error('Error getting Vega video:', error);
+            setStatus('error');
+        }
+    }
+
+    const getEpisodesVega = async () => {
+        try {
+            const tvData = await loadTvDataVega(movie.url || movie.link);
+            setSeasons(tvData.seasons);
+            if (tvData.seasons.length > 0) {
+                setSelectedSeason(tvData.seasons[0]);
+            }
+        } catch (error) {
+            console.error('Error getting Vega episodes:', error);
+        }
+    }
+
+    // Vidking provider functions
+const getVideoVidking = async () => {
+    try {
+        setStatus('loading');
+        console.log('Getting Vidking video for:', movie.id);
+        const videoLink = await loadFlickVidking(movie.id);
+        console.log('Vidking video URL:', videoLink); // Log the m3u8 URL to console
+        setVideo(videoLink.sources[0].url);
+        setStatus('success');
+    } catch (error) {
+        console.error('Error getting Vidking video:', error);
+        setStatus('error');
+    }
+}
+
+const getEpisodesVidking = async () => {
+    try {
+        setStatus('loading');
+        console.log('Getting Vidking episodes for:', movie.id);
+        const episodes = await loadTvDataVidking(movie.id);
+        
+        if (episodes && episodes.length > 0 && episodes[0].episodes && episodes[0].episodes.length > 0) {
+            setSeasonData(episodes);
+            setEpisodeData(episodes[0].episodes);
+            setSelectedSeason(episodes[0]);
+            setSelectedEpisode(episodes[0].episodes[0]);
+            
+            // Load the first episode
+            await getEpisodeVideoVidking(episodes[0].episodes[0]);
+        } else {
+            console.error('No episodes found for TV show');
+            setStatus('error');
+        }
+    } catch (error) {
+        console.error('Error getting Vidking episodes:', error);
+        setStatus('error');
+    }
+}
+
+const getEpisodeVideoVidking = async (episode) => {
+    try {
+        setStatus('loading');
+        console.log('Getting Vidking episode video for:', episode);
+        const videoData = await loadSeriesEpisodeVidking(episode);
+        console.log('Vidking episode URL:', videoData.sources[0].url); // Log the m3u8 URL to console
+        setVideo(videoData.sources[0].url);
+        setStatus('success');
+    } catch (error) {
+        console.error('Error getting Vidking episode video:', error);
+        setStatus('error');
+    }
+}
+
+const getDetailsVidkingLocal = async () => {
+    try {
+        console.log('Getting Vidking details for:', movie.id, movie.type);
+        const details = await getDetailsVidking(movie.id, movie.type);
+        const recommended = await getRecommendedVidking(movie.id);
+        setDetails(details);
+        setRecommended(recommended);
+    } catch (error) {
+        console.error('Error getting Vidking details:', error);
+        // Set fallback details to prevent infinite loading
+        setDetails({
+            description: movie.overview || 'No description available',
+            mainData: [
+                { name: 'Title', data: movie.title || 'Unknown' }
+            ]
+        });
+        setRecommended([]);
+    }
+}
+
+const getEpisodeVideoVega = async (episodeId) => {
+        try {
+            setStatus('loading');
+            const videoLink = await loadSeriesEpisodeVega(episodeId);
+            setVideo(videoLink);
+            setStatus('success');
+        } catch (error) {
+            console.error('Error getting Vega episode video:', error);
+            setStatus('error');
+        }
+    }
+
 
     useEffect(() => {
         if (movie.type == "tv" && selectedEpisode.id) {
@@ -167,6 +304,12 @@ const Details = ({ navigation, route }) => {
                     break;
                 case "flixhq":
                     getEpisodeVideoHQ(selectedEpisode.id);
+                    break;
+                case "vega":
+                    getEpisodeVideoVega(selectedEpisode.id);
+                    break;
+                case "vidking":
+                    getEpisodeVideoVidking(selectedEpisode);
                     break;
                 default:
                     getEpisodeVideoHQ(selectedEpisode.id);
@@ -204,6 +347,25 @@ const Details = ({ navigation, route }) => {
                 }
                 break;
             }
+            case "vega": {
+                getDetailsVega();
+                if (movie.type == "tv") {
+                    getEpisodesVega();
+                } else {
+                    getVideoVega();
+                }
+                break;
+            }
+            case "vidking": {
+                // For Vidking provider
+                getDetailsVidkingLocal();
+                if (movie.type == "tv") {
+                    getEpisodesVidking();
+                } else {
+                    getVideoVidking();
+                }
+                break;
+            }
             default:
                 console.log("Retrying...")
                 break;
@@ -220,6 +382,76 @@ const Details = ({ navigation, route }) => {
                 padding: 0
             }}
         >
+            { provider === 'vidking' ?
+            <View style={{ height: 300, width: '100%', position: 'relative' }}>
+                {video ? (
+                    <>
+                        <WebView
+                            source={{ uri: video }}
+                            style={{ flex: 1, height: 300, width: '100%' }}
+                            javaScriptEnabled={true}
+                            domStorageEnabled={true}
+                            startInLoadingState={true}
+                            allowsInlineMediaPlayback={true}
+                            mediaPlaybackRequiresUserAction={false}
+                            allowsFullscreenVideo={true}
+                            onError={(syntheticEvent) => {
+                                const { nativeEvent } = syntheticEvent;
+                                console.error('WebView error:', nativeEvent);
+                            }}
+                            onLoadStart={() => console.log('WebView loading started')}
+                            onLoadEnd={() => console.log('WebView loading finished')}
+                        />
+                        {/* Back button overlay with better positioning */}
+                        <View
+                            style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                height: 70,
+                                zIndex: 9999,
+                                pointerEvents: 'box-none',
+                            }}
+                        >
+                            <View
+                                style={{ flexDirection: 'row', alignItems: 'center', height: 50, paddingHorizontal: 10, backgroundColor: 'rgba(0, 0, 0, 0.3)' }}
+                                pointerEvents="box-none"
+                            >
+                                {/* Back button with fixed dimensions and better styling */}
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        console.log('Back button pressed');
+                                        navigation.navigate("Tabs");
+                                    }}
+                                    style={{
+                                        padding: 10,
+                                        alignItems: 'center',
+                                        justifyContent: 'flex-start'
+                                    }}
+                                    activeOpacity={0.7}
+                                >
+                                    <Icon
+                                        name="arrow-left"
+                                        size={sizes.width * 0.05}
+                                        color={colors.white}
+                                    />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </>
+                ) : (
+                    <View style={{ 
+                        flex: 1, 
+                        justifyContent: 'center', 
+                        alignItems: 'center',
+                        backgroundColor: colors.black 
+                    }}>
+                        <Text style={{ color: colors.white }}>Loading video...</Text>
+                    </View>
+                )}
+            </View>
+            :
             <MediaPlayer
                 title={movie.title}
                 video={video}
@@ -250,7 +482,7 @@ const Details = ({ navigation, route }) => {
                         }
                     }
                 }}
-            />
+            />}
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 style={{
@@ -409,6 +641,7 @@ const Details = ({ navigation, route }) => {
                     }
                     {
                         movie.type === "tv" && (
+                            console.log('SeasonData:', seasonData),
                             <View>
                                 <TvDetails
                                     setSelectedSeason={setSelectedSeason}
