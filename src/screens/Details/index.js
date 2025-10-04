@@ -1,12 +1,13 @@
-import {View, Text, Image, ActivityIndicator, Animated} from 'react-native';
-import React, {useEffect, useState, useRef} from 'react';
-import {colors, sizes} from '~/constants/theme';
+import { View, Text, Image, ActivityIndicator, Animated } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { colors, sizes } from '~/constants/theme';
 import MediaPlayer from '~/components/MediaPlayer';
 import MovieList from '~/components/MovieList';
-import {ScrollView, TouchableOpacity} from 'react-native-gesture-handler';
+import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
-import {useFocusEffect} from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
+import * as wyzieSubtitles from '~/api/wyzieSubtitles';
 
 // Vidking provider and WebView scrapper
 import {
@@ -21,16 +22,16 @@ import WebViewScrapper from '~/providers/KrazyDevsScrapper/WebViewScrapper';
 // Components and utilities
 import TvDetails from '~/components/TvDetails';
 import TvEpisodes from '~/components/TvEpisodes';
-import {startDownload} from '~/helpers/useDownload';
-import {useSelector} from 'react-redux';
+import { startDownload } from '~/helpers/useDownload';
+import { useSelector } from 'react-redux';
 
-const Details = ({navigation, route}) => {
-  const {player_type} = useSelector(state => state.profile);
-  const {movie} = route.params;
+const Details = ({ navigation, route }) => {
+  const { player_type } = useSelector(state => state.profile);
+  const { movie } = route.params;
 
   // State management
   const [video, setVideo] = useState(null);
-  const [subtitle, setSubtitle] = useState('');
+  const [subtitle, setSubtitle] = useState(null);
   const [recommended, setRecommended] = useState([]);
   const [details, setDetails] = useState(null);
   const [detailsLoading, setDetailsLoading] = useState(true);
@@ -69,7 +70,6 @@ const Details = ({navigation, route}) => {
         setStatus('error');
       }
     } catch (error) {
-      console.error('Error getting Vidking video:', error);
       setStatus('error');
     }
   };
@@ -88,37 +88,30 @@ const Details = ({navigation, route}) => {
         // Load the first episode
         await getEpisodeVideoVidking(episodes[0].episodes[0]);
       } else {
-        console.error('No episodes found for TV show');
         setStatus('error');
       }
     } catch (error) {
-      console.error('Error getting Vidking episodes:', error);
       setStatus('error');
     }
   };
 
   const getEpisodeVideoVidking = async episode => {
     try {
-      console.log('Loading episode video for:', episode.title || episode.name);
       setStatus('loading');
       // Reset video and subtitle data for new episode
       setVideo(null);
-      setSubtitle('');
-      
+      setSubtitle(null);
+
       const videoData = await loadSeriesEpisodeVidking(episode);
-      console.log('Episode video data received:', videoData);
-      
+
       if (videoData?.sources?.[0]?.url) {
         const newUrl = videoData.sources[0].url;
-        console.log('Setting scrapper URL:', newUrl);
         setScrapperUrl(newUrl);
         setShowWebViewScrapper(true);
       } else {
-        console.log('No video source found in episode data');
         setStatus('error');
       }
     } catch (error) {
-      console.error('Error getting Vidking episode video:', error);
       setStatus('error');
     }
   };
@@ -126,26 +119,24 @@ const Details = ({navigation, route}) => {
   const loadDetailsVidking = async () => {
     try {
       setDetailsLoading(true);
-      
+
       // Get details first using the imported function
       const details = await getDetailsVidking(movie.id, movie.type);
       setDetails(details);
       setDetailsLoading(false);
-      
+
       // Get recommended content separately
       try {
         const recommended = await getRecommendedVidking(movie.id, movie.type);
         setRecommended(recommended);
       } catch (recError) {
-        console.warn('Could not load recommended content:', recError.message);
         setRecommended([]);
       }
     } catch (error) {
-      console.error('Error getting Vidking details:', error);
       // Set fallback details to prevent infinite loading
       setDetails({
         description: movie.overview || 'No description available',
-        mainData: [{name: 'Title', data: movie.title || 'Unknown'}],
+        mainData: [{ name: 'Title', data: movie.title || 'Unknown' }],
       });
       setDetailsLoading(false);
       setRecommended([]);
@@ -154,61 +145,113 @@ const Details = ({navigation, route}) => {
 
   // Handle WebViewScrapper data extraction - simplified
   const handleDataExtracted = data => {
-    console.log('Data extracted from WebViewScrapper:', data);
-    
     if (data?.video) {
       setVideo(data.video);
       setStatus('success');
       setShowWebViewScrapper(false);
-      console.log('New video URL extracted:', data.video);
     }
-    
-    if (data?.subtitle) {
-      setSubtitle(data.subtitle);
-      console.log('New subtitle URL extracted:', data.subtitle);
-    } else if (data && !data.video && !data.subtitle) {
-      // Handle timeout or error case
-      console.log('WebViewScrapper finished but no media found');
-      setStatus('error');
-      setShowWebViewScrapper(false);
-    }
-    
+
     setIsVideoPlaying(true);
   };
 
   const handleScrapperLoading = loading => {
-    console.log('WebViewScrapper loading state:', loading);
+    // No action needed
   };
 
   useEffect(() => {
     if (movie.type === 'tv' && selectedEpisode?.id) {
       // Reset all video-related states when episode changes
       setVideo(null);
-      setSubtitle('');
+      setSubtitle(null);
       setShowWebViewScrapper(false);
       setScrapperUrl('');
       setStatus('loading');
-      
+
       // Small delay to ensure state is reset before starting new scraping
       setTimeout(() => {
         getEpisodeVideoVidking(selectedEpisode);
+        fetchWyzieSubtitles();
       }, 100);
     }
   }, [selectedEpisode]);
+
+  // Fetch subtitles using wyzie-lib
+  const fetchWyzieSubtitles = async () => {
+    try {
+      let subtitle = null;
+
+      if (movie.type === 'tv') {
+        // Make sure we have all required data for TV show subtitles
+        if (!selectedSeason || !selectedEpisode) {
+          return;
+        }
+
+        // Extract season and episode numbers, with fallbacks
+        // Try different property names that might exist in the API response
+        const seasonNumber = selectedSeason?.season_number ||
+          selectedSeason?.seasonNumber ||
+          selectedSeason?.season ||
+          (selectedSeason?.name ? parseInt(selectedSeason.name.replace(/\D/g, '')) : null);
+
+        const episodeNumber = selectedEpisode?.episode_number ||
+          selectedEpisode?.episodeNumber ||
+          selectedEpisode?.episode ||
+          (selectedEpisode?.name ? parseInt(selectedEpisode.name.replace(/\D/g, '')) : null);
+
+        if (!seasonNumber || !episodeNumber) {
+          return;
+        }
+
+        // Fetch TV show subtitle
+        subtitle = await wyzieSubtitles.getTvSubtitle(
+          movie.id,
+          seasonNumber,
+          episodeNumber,
+          { language: 'en' }
+        );
+      } else {
+        // Fetch movie subtitle
+        subtitle = await wyzieSubtitles.getMovieSubtitle(
+          movie.id,
+          { language: 'en' }
+        );
+      }
+
+      if (subtitle) {
+        if (subtitle.vttContent) {
+          // Use the VTT content directly if available
+          setSubtitle(subtitle.vttContent);
+        } else if (subtitle.url) {
+          setSubtitle(subtitle.url);
+        }
+      }
+    } catch (error) {
+      // Silent error handling
+    }
+  };
 
   // Handle season selection for TV shows
   useEffect(() => {
     if (movie.type === 'tv' && selectedSeason?.episodes) {
       setEpisodeData(selectedSeason.episodes);
+      // Don't fetch subtitles here - wait for episode selection
     }
   }, [selectedSeason]);
+
+  // Handle episode selection for TV shows
+  useEffect(() => {
+    if (movie.type === 'tv' && selectedEpisode) {
+      // Fetch subtitles when an episode is selected
+      fetchWyzieSubtitles();
+    }
+  }, [selectedEpisode]);
 
   // Pulsing animation effect
   useEffect(() => {
     const pulseAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
-          toValue: 0.3,
+          toValue: 0.8,
           duration: 1000,
           useNativeDriver: true,
         }),
@@ -224,14 +267,17 @@ const Details = ({navigation, route}) => {
     return () => pulseAnimation.stop();
   }, [pulseAnim, video]);
 
-  // Initialize data loading on component mount
+  // Initial data loading
   useEffect(() => {
     loadDetailsVidking();
 
     if (movie.type === 'tv') {
       getEpisodesVidking();
+      // Don't fetch TV subtitles here - wait for episode selection
     } else {
       getVideoVidking();
+      // Fetch wyzie subtitles for movies
+      fetchWyzieSubtitles();
     }
   }, []);
 
@@ -259,7 +305,7 @@ const Details = ({navigation, route}) => {
         padding: 0,
       }}>
       {showWebViewScrapper && scrapperUrl ? (
-        <View style={{height: 250, width: '100%', position: 'relative'}}>
+        <View style={{ height: 255, width: '100%', position: 'relative' }}>
           <View
             style={{
               position: 'absolute',
@@ -271,7 +317,7 @@ const Details = ({navigation, route}) => {
             }}>
             {/* Background movie image */}
             <Image
-              source={{uri: movie.image}}
+              source={{ uri: movie.image }}
               style={{
                 position: 'absolute',
                 top: 0,
@@ -285,6 +331,17 @@ const Details = ({navigation, route}) => {
             {/* Gradient overlay - transparent to black (bottom gradient) */}
             <LinearGradient
               colors={['transparent', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,1)']}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+              }}
+            />
+
+            <LinearGradient
+              colors={['rgba(0,0,0,1)', 'rgba(0,0,0,0.4)', 'transparent']}
               style={{
                 position: 'absolute',
                 top: 0,
@@ -309,26 +366,17 @@ const Details = ({navigation, route}) => {
               <Animated.View
                 style={{
                   opacity: pulseAnim,
-                  transform: [{scale: pulseAnim}],
+                  transform: [{ scale: pulseAnim }],
                 }}>
                 <Image
                   source={require('~/assets/logo/logo.png')}
                   style={{
-                    width: 80,
-                    height: 80,
+                    width: 100,
+                    height: 200,
                   }}
                   resizeMode="contain"
                 />
               </Animated.View>
-              <Text
-                style={{
-                  color: colors.white,
-                  fontSize: 16,
-                  marginTop: 20,
-                  fontWeight: '500',
-                }}>
-                Loading...
-              </Text>
             </View>
 
             {/* Back button overlay */}
@@ -348,7 +396,7 @@ const Details = ({navigation, route}) => {
                   alignItems: 'center',
                   height: 50,
                   paddingHorizontal: 10,
-                  backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                  backgroundColor: 'transparent',
                 }}
                 pointerEvents="box-none">
                 <TouchableOpacity
@@ -379,7 +427,7 @@ const Details = ({navigation, route}) => {
             onLoading={handleScrapperLoading}
           />
         </View>
-      ) : video && !showWebViewScrapper ? (
+      ) : video && subtitle && !showWebViewScrapper ? (
         <MediaPlayer
           title={movie.title}
           video={video}
@@ -429,7 +477,7 @@ const Details = ({navigation, route}) => {
             backgroundColor: colors.black,
           }}>
           <ActivityIndicator size="large" color={colors.red} />
-          <Text style={{color: colors.white, marginTop: 10}}>
+          <Text style={{ color: colors.white, marginTop: 10 }}>
             Loading video...
           </Text>
         </View>
@@ -441,7 +489,7 @@ const Details = ({navigation, route}) => {
             alignItems: 'center',
             backgroundColor: colors.black,
           }}>
-          <Text style={{color: colors.white, fontSize: 16}}>
+          <Text style={{ color: colors.white, fontSize: 16 }}>
             No video available
           </Text>
           <TouchableOpacity
@@ -459,7 +507,7 @@ const Details = ({navigation, route}) => {
               backgroundColor: colors.red,
               borderRadius: 5,
             }}>
-            <Text style={{color: colors.white}}>Retry</Text>
+            <Text style={{ color: colors.white }}>Retry</Text>
           </TouchableOpacity>
         </View>
       ) : null}
@@ -479,7 +527,7 @@ const Details = ({navigation, route}) => {
               justifyContent: 'space-between',
             }}>
             <Image
-              source={{uri: movie.image}}
+              source={{ uri: movie.image }}
               style={{
                 width: sizes.width * 0.25,
                 height: sizes.width * 0.45,
@@ -535,7 +583,7 @@ const Details = ({navigation, route}) => {
                   <ActivityIndicator size="large" color={colors.red} />
                 </View>
               ) : (
-                <Text style={{color: colors.white}}>No details available</Text>
+                <Text style={{ color: colors.white }}>No details available</Text>
               )}
             </View>
           </View>
@@ -614,28 +662,28 @@ const Details = ({navigation, route}) => {
                 alignItems: 'center',
               }}>
               <ActivityIndicator size="large" color={colors.red} />
-              <Text style={{color: colors.white, marginTop: 10}}>Loading details...</Text>
+              <Text style={{ color: colors.white, marginTop: 10 }}>Loading details...</Text>
             </View>
           ) : (
-            <Text style={{color: colors.white, padding: 10}}>No additional details available</Text>
+            <Text style={{ color: colors.white, padding: 10 }}>No additional details available</Text>
           )}
           {movie.type === 'tv' &&
             (console.log('SeasonData:', seasonData),
-            (
-              <View>
-                <TvDetails
-                  setSelectedSeason={setSelectedSeason}
-                  selectedSeason={selectedSeason}
-                  seasonData={seasonData}
-                />
-                <TvEpisodes
-                  setSelectedEpisode={setSelectedEpisode}
-                  selectedEpisode={selectedEpisode}
-                  episodeData={episodeData}
-                  isLoaded={video ? true : false}
-                />
-              </View>
-            ))}
+              (
+                <View>
+                  <TvDetails
+                    setSelectedSeason={setSelectedSeason}
+                    selectedSeason={selectedSeason}
+                    seasonData={seasonData}
+                  />
+                  <TvEpisodes
+                    setSelectedEpisode={setSelectedEpisode}
+                    selectedEpisode={selectedEpisode}
+                    episodeData={episodeData}
+                    isLoaded={video ? true : false}
+                  />
+                </View>
+              ))}
         </View>
         {recommended?.length > 0 && (
           <MovieList

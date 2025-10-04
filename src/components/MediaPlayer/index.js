@@ -10,7 +10,7 @@ import VideoPlayer from 'react-native-reanimated-player';
 import { useSharedValue } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 //import CastButton from './CastButton';
-import GoogleCast, { useDevices, useRemoteMediaClient , CastButton } from 'react-native-google-cast'
+import GoogleCast, { useDevices, useRemoteMediaClient, CastButton } from 'react-native-google-cast'
 import { useEffect } from 'react'
 
 const MediaPlayer = ({
@@ -45,19 +45,19 @@ const MediaPlayer = ({
     const devices = useDevices()
 
     useEffect(() => {
-        if(client) {
+        if (client) {
             client.loadMedia({
                 mediaInfo: {
                     contentUrl: video,
                     contentType: 'video/mp4',
-                metadata: {
-                    images: [
-                        {
-                        url: imageUrl,
-                        },
-                    ],
-                    title: title,
-                    subtitle: subtitle
+                    metadata: {
+                        images: [
+                            {
+                                url: imageUrl,
+                            },
+                        ],
+                        title: title,
+                        subtitle: subtitle
                     },
                     streamDuration: duration, // seconds
                 },
@@ -136,14 +136,14 @@ const MediaPlayer = ({
         // const percent = ((duration - time) / duration) * 100;
         // console.log(percent.toFixed(2) + "%");
         //console.log((duration - time).toFixed(0) + " seconds");
-        if((duration - time).toFixed(0) < 150) {
+        if ((duration - time).toFixed(0) < 150) {
             return true;
         }
         return false;
     }
 
     const handleProgress = ({ currentTime: time }) => {
-        if(type == "tv") setIsReadyNext(checkTime(time));
+        if (type == "tv") setIsReadyNext(checkTime(time));
         setCurrentPosition(time);
         if (status != 'playing') {
             setStatus('playing')
@@ -151,7 +151,6 @@ const MediaPlayer = ({
     }
 
     const onSeek = (value) => {
-        console.log('change', value, currentPosition)
         setCurrentTime(value);
         setCurrentPosition(value);
         onPlay();
@@ -234,13 +233,15 @@ const MediaPlayer = ({
                     Immersive.setImmersive(false)
                     videoHeight.value = sizes.width * (9 / 16);
                 }}
-                selectedTextTrack={subtitle != "" && subtitle ? { type: 'language', value: 'en' } : { type: 'language', value: 'none' }}
-                textTracks={subtitle != "" && subtitle ? [{
+                // sample subtitle value
+                // https://sub.wyzie.ru/c/19b80c53/id/1961813931?format=srt&encoding=UTF-8
+                textTracks={[{
                     title: title,
                     language: 'en',
-                    type: subtitle.split(".").pop() == "srt" ? TextTrackType.SRT : TextTrackType.VTT,
+                    type: TextTrackType.SRT,
                     uri: subtitle
-                }] : []}
+                }]}
+                selectedTextTrack={{ type: 'language', value: 'en' }}
             />
         )
     } else {
@@ -285,9 +286,7 @@ const MediaPlayer = ({
                     posterResizeMode="cover"
                     controls={false}
                     repeat={true}
-                    onError={(error) => {
-                        console.log(error)
-                    }}
+                    onError={() => {}}
                     muted={false}
                     paused={!playing}
                     hideShutterView={true}
@@ -296,13 +295,13 @@ const MediaPlayer = ({
                     }}
                     onProgress={handleProgress}
                     fullscreen={fullscreen}
-                    selectedTextTrack={subtitle != "" && subtitle ? { type: 'language', value: 'en' } : { type: 'language', value: 'none' }}
-                    textTracks={subtitle != "" && subtitle ? [{
+                    textTracks={[{
                         title: title,
                         language: 'en',
-                        type: subtitle.split(".").pop() == "srt" ? TextTrackType.SRT : TextTrackType.VTT,
+                        type: TextTrackType.SRT,
                         uri: subtitle
-                    }] : []}
+                    }]}
+                    selectedTextTrack={{ type: 'language', value: 'en' }}
                 />
                 <Controls
                     title={title}
