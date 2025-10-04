@@ -321,6 +321,32 @@ export const getVideos = async (id, type) => {
     }
 };
 
+// Function to get recommendations for a movie or TV show
+export const getRecommendations = async (id, type, page = 1) => {
+    try {
+        const url = type === 'movie' 
+            ? `${TMDB_BASE_URL}/movie/${id}/recommendations?api_key=${TMDB_API_KEY}&language=en-US&page=${page}`
+            : `${TMDB_BASE_URL}/tv/${id}/recommendations?api_key=${TMDB_API_KEY}&language=en-US&page=${page}`;
+        
+        const data = await tmdbFetch(url);
+        
+        return data.results.map(item => ({
+            id: item.id.toString(),
+            title: item.title || item.name,
+            image: item.poster_path ? `${TMDB_IMAGE_BASE_URL}${item.poster_path}` : null,
+            link: item.id.toString(),
+            type: type,
+            overview: item.overview,
+            release_date: item.release_date || item.first_air_date,
+            vote_average: item.vote_average,
+            backdrop_path: item.backdrop_path ? `${TMDB_IMAGE_BASE_URL}${item.backdrop_path}` : null
+        }));
+    } catch (error) {
+        console.error('Error getting recommendations:', error);
+        return [];
+    }
+};
+
 // Genre mapping for easier use
 export const GENRES = {
     // Movie genres
@@ -361,5 +387,7 @@ export default {
     searchTMDb,
     getTMDbDetails,
     getTVSeasons,
+    getRecommendations,
+    getVideos,
     GENRES
 };

@@ -11,9 +11,7 @@ import { useSharedValue } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 //import CastButton from './CastButton';
 import GoogleCast, { useDevices, useRemoteMediaClient , CastButton } from 'react-native-google-cast'
-import { TouchableOpacity } from 'react-native-gesture-handler'
 import { useEffect } from 'react'
-import WebView from 'react-native-webview'
 
 const MediaPlayer = ({
     video,
@@ -27,7 +25,10 @@ const MediaPlayer = ({
     subtitle,
     navigation,
     player_type,
-    onNext
+    onNext,
+    shouldPauseVideo,
+    isVideoPlaying,
+    setIsVideoPlaying
 }) => {
     const [controlsHide, setControlsHide] = React.useState(false);
     const [playing, setPlaying] = React.useState(true);
@@ -65,6 +66,29 @@ const MediaPlayer = ({
         }
     }, [client, devices])
 
+    // Effect to handle external pause/resume commands
+    useEffect(() => {
+        if (shouldPauseVideo) {
+            setPlaying(false);
+            if (setIsVideoPlaying) {
+                setIsVideoPlaying(false);
+            }
+        } else if (isVideoPlaying !== undefined) {
+            setPlaying(isVideoPlaying);
+        }
+    }, [shouldPauseVideo, isVideoPlaying, setIsVideoPlaying]);
+
+    // Cleanup effect when component unmounts
+    useEffect(() => {
+        return () => {
+            // Pause video when component unmounts
+            setPlaying(false);
+            if (setIsVideoPlaying) {
+                setIsVideoPlaying(false);
+            }
+        };
+    }, [setIsVideoPlaying]);
+
     const startCast = (video, image, title, subtitle, duration, currentTime, mediaType, moreDetails) => {
         try {
             GoogleCast.castMedia({
@@ -92,6 +116,9 @@ const MediaPlayer = ({
 
     const onPause = () => {
         setPlaying(false);
+        if (setIsVideoPlaying) {
+            setIsVideoPlaying(false);
+        }
     }
 
     const handleLoad = ({ duration: mediaDuration }) => {
@@ -100,6 +127,9 @@ const MediaPlayer = ({
 
     const onPlay = () => {
         setPlaying(true);
+        if (setIsVideoPlaying) {
+            setIsVideoPlaying(true);
+        }
     }
 
     const checkTime = (time) => {
@@ -144,55 +174,30 @@ const MediaPlayer = ({
         resize >= 0 && resize <= 3 ? setResize(resize + 1) : setResize(0);
     }
 
-    BackHandler.addEventListener('hardwareBackPress', () => {
-        if (fullscreen) {
-            onFullscreen();
-            return true;
-        } else {
-            navigation.navigate("Tabs");
-            return true;
-        }
-    })
+    useEffect(() => {
+        const handleBackPress = () => {
+            if (fullscreen) {
+                onFullscreen();
+                return true;
+            } else {
+                // Pause video before navigating away
+                setPlaying(false);
+                if (setIsVideoPlaying) {
+                    setIsVideoPlaying(false);
+                }
+                navigation.navigate("Tabs");
+                return true;
+            }
+        };
 
-    if (video && video.isIframe) {
-        return (
-            <View style={{ 
-                height: fullscreen ? sizes.width : sizes.height * 0.3,
-                width: fullscreen ? sizes.height : sizes.width,
-            }}>
-                <WebView
-                    source={{ uri: video.url }}
-                    style={{ width: '100%', height: '100%' }}
-                    allowsFullscreenVideo={true}
-                    javaScriptEnabled={true}
-                    domStorageEnabled={true}
-                    startInLoadingState={true}
-                    renderLoading={() => (
-                        <View style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            backgroundColor: colors.black
-                        }}>
-                            <Text style={{ color: colors.white }}>Loading player...</Text>
-                        </View>
-                    )}
-                    onLoad={() => {
-                        console.log('Iframe loaded successfully');
-                        setStatus('playing');
-                    }}
-                    onError={(error) => {
-                        console.error('Iframe loading error:', error);
-                        setStatus('error');
-                    }}
-                />
-            </View>
-        )
-    } else if (player_type == 'youtube') {
+        const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+
+        return () => {
+            backHandler.remove();
+        };
+    }, [fullscreen, navigation, setIsVideoPlaying]);
+
+    if (player_type == 'youtube') {
         return (
             <VideoPlayer
                 source={{
