@@ -152,40 +152,32 @@ const Details = ({navigation, route}) => {
     }
   };
 
-  // Handle WebViewScrapper data extraction
+  // Handle WebViewScrapper data extraction - simplified
   const handleDataExtracted = data => {
     console.log('Data extracted from WebViewScrapper:', data);
     
-    if (data && data.video) {
+    if (data?.video) {
       setVideo(data.video);
       setStatus('success');
       setShowWebViewScrapper(false);
       console.log('New video URL extracted:', data.video);
-    } else {
-      // If no video but data was extracted (timeout case)
-      console.log('WebViewScrapper finished but no video found');
+    }
+    
+    if (data?.subtitle) {
+      setSubtitle(data.subtitle);
+      console.log('New subtitle URL extracted:', data.subtitle);
+    } else if (data && !data.video && !data.subtitle) {
+      // Handle timeout or error case
+      console.log('WebViewScrapper finished but no media found');
       setStatus('error');
       setShowWebViewScrapper(false);
     }
     
-    if (data && data.subtitle) {
-      setSubtitle(data.subtitle);
-      console.log('New subtitle URL extracted:', data.subtitle);
-    }
     setIsVideoPlaying(true);
   };
 
   const handleScrapperLoading = loading => {
     console.log('WebViewScrapper loading state:', loading);
-    if (!video) {
-      // If WebView finished loading but no video was found, show error after delay
-      setTimeout(() => {
-        if (!video && showWebViewScrapper) {
-          console.log('No video found after WebView finished loading');
-          setShowWebViewScrapper(false);
-        }
-      }, 25000);
-    }
   };
 
   useEffect(() => {
