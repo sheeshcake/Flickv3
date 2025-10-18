@@ -145,6 +145,7 @@ const Details = ({ navigation, route }) => {
 
   // Handle WebViewScrapper data extraction - simplified
   const handleDataExtracted = data => {
+    console.log('Data extracted from WebViewScrapper:', data);
     if (data?.video) {
       setVideo(data.video);
       setStatus('success');
@@ -427,7 +428,7 @@ const Details = ({ navigation, route }) => {
             onLoading={handleScrapperLoading}
           />
         </View>
-      ) : video && subtitle && !showWebViewScrapper ? (
+      ) : video && !showWebViewScrapper ? (
         <MediaPlayer
           title={movie.title}
           video={video}
@@ -514,12 +515,9 @@ const Details = ({ navigation, route }) => {
       <ScrollView
         showsVerticalScrollIndicator={false}
         style={{
-          marginTop: 20,
+          marginTop: 10,
         }}>
-        <View
-          style={{
-            padding: sizes.padding,
-          }}>
+        <View>
           <View
             style={{
               flex: 1,
@@ -540,12 +538,11 @@ const Details = ({ navigation, route }) => {
                 flex: 1,
                 flexDirection: 'column',
                 alignItems: 'flex-start',
-                paddingTop: 15,
                 marginHorizontal: 10,
               }}>
               <Text
                 style={{
-                  fontSize: 30,
+                  fontSize: movie.title.length > 20 ? 20 : 25,
                   fontWeight: 'bold',
                   color: colors.white,
                   paddingBottom: 5,
