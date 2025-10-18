@@ -15,7 +15,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { colors, sizes } from '~/constants/theme';
 
 const { width, height } = Dimensions.get('window');
-const HERO_HEIGHT = height * 0.5; // Extended height for better blending
+const HERO_HEIGHT = height * 0.6; // Extended height for better blending
 const SPACING = 20;
 
 const NetflixHeroCarousel = ({ movies = [], navigation }) => {
@@ -199,7 +199,7 @@ const NetflixHeroCarousel = ({ movies = [], navigation }) => {
                             </Text>
 
                             {/* Movie overview */}
-                            {item.overview && (
+                            {item.description && (
                                 <Text
                                     style={{
                                         color: colors.white,
@@ -213,7 +213,7 @@ const NetflixHeroCarousel = ({ movies = [], navigation }) => {
                                     }}
                                     numberOfLines={3}
                                 >
-                                    {item.overview}
+                                    {item.description}
                                 </Text>
                             )}
 
@@ -356,7 +356,7 @@ const NetflixHeroCarousel = ({ movies = [], navigation }) => {
             />
             
             {/* Page indicators */}
-            <View
+            {/* <View
                 style={{
                     flexDirection: 'row',
                     justifyContent: 'center',
@@ -380,7 +380,7 @@ const NetflixHeroCarousel = ({ movies = [], navigation }) => {
                         }}
                     />
                 ))}
-            </View>
+            </View> */}
         </View>
     );
 };

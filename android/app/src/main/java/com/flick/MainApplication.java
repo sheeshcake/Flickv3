@@ -13,7 +13,6 @@ import com.flick.newarchitecture.MainApplicationReactNativeHost;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import com.rnimmersive.RNImmersivePackage;
-import com.rnfs.RNFSPackage;
 
 public class MainApplication extends Application implements ReactApplication {
 

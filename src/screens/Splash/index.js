@@ -12,52 +12,29 @@ import {
     setRomanceMovie,
     setTvShow,
 } from '~/redux/homeSlice'
-
+import tmdbApi from '~/api/tmdb';
 import { useSelector } from 'react-redux'
-
 import {
     getprofileData,
     setProvider,
 } from '~/redux/profileSlice'
 
-// import providers here
-
-import {
-    getheroflixhq,
-    getgenreflixhq,
-} from '~/providers/KrazyDevsScrapper/FlixHQProvider'
-
-import {
-    getherosolarmovie,
-    getgenresolarmovie,
-} from '~/providers/KrazyDevsScrapper/SolarMovieProvider'
-
-import {
-    getherofmovies,
-    getgenrefmovies,
-} from '~/providers/KrazyDevsScrapper/FMoviesProvider'
-
-import {
-    getheroVega,
-    getgenreVega,
-} from '~/providers/KrazyDevsScrapper/VegaProvider'
-
-import {
-    getheroVidking,
-    getgenreVidking,
-} from '~/providers/KrazyDevsScrapper/VidkingProvider'
-
-////////////////////
-import _, { fromPairs } from 'lodash'
-
 const Splash = ({ navigation }) => {
     const loadingMessage = require('~/constants/loadingmessage.js');
     const dispatch = useDispatch()
-    const [isInitialized, setIsInitialized] = useState(false)
     const {
         provider
     } = useSelector(state => state.profile)
 
+    const loadMoviesTmdb = async () => {
+        dispatch(setMovies(await tmdbApi.hero()));
+        dispatch(setPopularMovie(await tmdbApi.popular_movie()));
+        dispatch(setHorrorMovie(await tmdbApi.horror_movie()));
+        dispatch(setActionMovie(await tmdbApi.action_movie()));
+        dispatch(setComedyMovie(await tmdbApi.comedy_movie()));
+        dispatch(setRomanceMovie(await tmdbApi.romance_movie()));
+        dispatch(setTvShow(await tmdbApi.popular_tv()));
+    }
 
     const proceedToHome = () => {
         navigation.reset({
@@ -65,63 +42,6 @@ const Splash = ({ navigation }) => {
             routes: [{ name: 'Tabs' }]
         })
     }
-
-    const laodDataFlixHQ = async () => {
-        dispatch(setMovies(await getheroflixhq()));
-        dispatch(setPopularMovie(await getheroflixhq('movie')));
-        dispatch(setHorrorMovie(await getgenreflixhq('horror', 'movie')));
-        dispatch(setActionMovie(await getgenreflixhq('action', 'movie')));
-        dispatch(setComedyMovie(await getgenreflixhq('comedy', 'movie')));
-        dispatch(setRomanceMovie(await getgenreflixhq('romance', 'movie')));
-        dispatch(setTvShow(await getheroflixhq('tv')));
-        proceedToHome();
-    }
-
-    const laodDataSolarMovie = async () => {
-        proceedToHome();
-        dispatch(setMovies(await getherosolarmovie()));
-        dispatch(setPopularMovie(await getherosolarmovie('movie')));
-        dispatch(setHorrorMovie(await getgenresolarmovie('horror', 'movie')));
-        dispatch(setActionMovie(await getgenresolarmovie('action', 'movie')));
-        dispatch(setComedyMovie(await getgenresolarmovie('comedy', 'movie')));
-        dispatch(setRomanceMovie(await getgenresolarmovie('romance', 'movie')));
-        dispatch(setTvShow(await getherosolarmovie('tv')));
-        proceedToHome();
-    }
-
-    const laodDataFMovies = async () => {
-        dispatch(setMovies(await getherofmovies()));
-        dispatch(setPopularMovie(await getherofmovies('movie')));
-        dispatch(setHorrorMovie(await getgenrefmovies('horror', 'movie')));
-        dispatch(setActionMovie(await getgenrefmovies('action', 'movie')));
-        dispatch(setComedyMovie(await getgenrefmovies('comedy', 'movie')));
-        dispatch(setRomanceMovie(await getgenrefmovies('romance', 'movie')));
-        dispatch(setTvShow(await getherofmovies('tv')));
-        proceedToHome();
-    }
-
-    const laodDataVega = async () => {
-        dispatch(setMovies(await getheroVega()));
-        dispatch(setPopularMovie(await getheroVega('movie')));
-        dispatch(setHorrorMovie(await getgenreVega('horror', 'movie')));
-        dispatch(setActionMovie(await getgenreVega('action', 'movie')));
-        dispatch(setComedyMovie(await getgenreVega('comedy', 'movie')));
-        dispatch(setRomanceMovie(await getgenreVega('romance', 'movie')));
-        dispatch(setTvShow(await getheroVega('tv')));
-        proceedToHome();
-    }
-    
-    const laodDataVidking = async () => {
-        dispatch(setMovies(await getheroVidking()));
-        dispatch(setPopularMovie(await getheroVidking('movie')));
-        dispatch(setHorrorMovie(await getgenreVidking('horror', 'movie')));
-        dispatch(setActionMovie(await getgenreVidking('action', 'movie')));
-        dispatch(setComedyMovie(await getgenreVidking('comedy', 'movie')));
-        dispatch(setRomanceMovie(await getgenreVidking('romance', 'movie')));
-        dispatch(setTvShow(await getheroVidking('tv')));
-        proceedToHome();
-    }
-
     const getLocalStorageData = async () => {
         try {
             const value = await AsyncStorage.getItem('userProfile')
@@ -129,7 +49,7 @@ const Splash = ({ navigation }) => {
             if (value) {
                 const userData = JSON.parse(value) || []
                 dispatch(getprofileData(userData))
-                getMovieData();
+                loadMoviesTmdb();
             } else {
                 navigation.reset({
                     index: 0,
@@ -155,9 +75,6 @@ const Splash = ({ navigation }) => {
         }
     }
 
-    const testApi = async () => {
-        console.log(await solarmovie.hero())
-    }
     const getRandomNumber = () => {
         const randomNumber = Math.floor(Math.random() * loadingMessage.default.length) + 1;
         return randomNumber
@@ -170,62 +87,11 @@ const Splash = ({ navigation }) => {
            changeMessage();
         }, 3000)
     }
-    const getMovieData = async () => {
-        try{
-            if(provider !== '') {
-                switch(provider) {
-                    case "flixhq":
-                        laodDataFlixHQ()
-                        break;
-                    case "solarmovie":
-                        laodDataSolarMovie()
-                        break;
-                    case "fmovies":
-                        laodDataFMovies()
-                        break;
-                    case "vega":
-                        laodDataVega()
-                        break;
-                    case "vidking":
-                        laodDataVidking()
-                        break;
-                    default:
-                        laodDataFlixHQ()
-                        break;
-                }
-            }
-        } catch (error) {
-            alert("Error: " + error);
-        }
-    }
 
     useEffect(() => {
-        try{
-            if(provider != '' && isInitialized === false) {
-                setIsInitialized(true)
-                switch(provider) {
-                    case "flixhq":
-                        laodDataFlixHQ()
-                        break;
-                    case "solarmovie":
-                        laodDataSolarMovie()
-                        break;
-                    case "fmovies":
-                        laodDataFMovies()
-                        break;
-                    case "vega":
-                        laodDataVega()
-                        break;
-                    case "vidking":
-                        laodDataVidking()
-                        break;
-                    default:
-                        break;
-                }
-            }
-        } catch (error) {
-            alert("Error: " + error);
-        }
+        loadMoviesTmdb().then(() => {
+            proceedToHome();
+        });
     }, [provider])
 
     useEffect(() => {
