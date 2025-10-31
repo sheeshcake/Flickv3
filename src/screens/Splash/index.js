@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { colors } from '~/constants/theme'
 import AsyncStorage from '@react-native-community/async-storage'
 import { useDispatch } from 'react-redux'
+import TudumAnimation from '~/components/Tudum'
 import {
     setMovies,
     setPopularMovie,
@@ -54,6 +55,7 @@ const Splash = ({ navigation }) => {
     const loadingMessage = require('~/constants/loadingmessage.js');
     const dispatch = useDispatch()
     const [isInitialized, setIsInitialized] = useState(false)
+    const [showTudum, setShowTudum] = useState(true)
     const {
         provider
     } = useSelector(state => state.profile)
@@ -119,7 +121,9 @@ const Splash = ({ navigation }) => {
         dispatch(setComedyMovie(await getgenreVidking('comedy', 'movie')));
         dispatch(setRomanceMovie(await getgenreVidking('romance', 'movie')));
         dispatch(setTvShow(await getheroVidking('tv')));
-        proceedToHome();
+        setTimeout(() => {
+            proceedToHome();
+        }, 3000);  
     }
 
     const getLocalStorageData = async () => {
@@ -235,39 +239,48 @@ const Splash = ({ navigation }) => {
     }, [])
 
     return (
-        <View
-            style={{
-                flex: 1,
-                backgroundColor: colors.black,
-                justifyContent: 'center',
-                alignItems: 'center',
-            }}
-        >
-            <Image
-                source={require('~/assets/logo/logo.png')}
-                style={{
-                    width: 200,
-                }}
-            />
-            <ActivityIndicator size="large" color={colors.red} />
-            <View
-                style={{
-                    width: '50%',
-                    alignItems: 'center',
-                }}
-            >
-                <Text
+        <>
+            {showTudum ? (
+                <TudumAnimation 
+                    navigation={navigation}
+                    onComplete={() => setShowTudum(false)}
+                />
+            ) : (
+                <View
                     style={{
-                        color: colors.white,
-                        fontSize: 14,
-                        textAlign: 'center',
+                        flex: 1,
+                        backgroundColor: colors.black,
+                        justifyContent: 'center',
+                        alignItems: 'center',
                     }}
                 >
-                    {loading}
-                </Text>
-            </View>
+                    <Image
+                        source={require('~/assets/logo/logo.png')}
+                        style={{
+                            width: 200,
+                        }}
+                    />
+                    <ActivityIndicator size="large" color={colors.red} />
+                    <View
+                        style={{
+                            width: '50%',
+                            alignItems: 'center',
+                        }}
+                    >
+                        <Text
+                            style={{
+                                color: colors.white,
+                                fontSize: 14,
+                                textAlign: 'center',
+                            }}
+                        >
+                            {loading}
+                        </Text>
+                    </View>
 
-        </View>
+                </View>
+            )}
+        </>
     )
 }
 
