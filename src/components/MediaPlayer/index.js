@@ -16,6 +16,9 @@ import GoogleCast, {
   CastButton,
 } from 'react-native-google-cast';
 import {useEffect} from 'react';
+import { useDispatch } from 'react-redux';
+import { addOrUpdateItem } from '~/redux/continueWatchingSlice';
+import { continueWatchingStorage } from '~/helpers/continueWatchingStorage';
 
 const MediaPlayer = ({
   video,
@@ -33,20 +36,137 @@ const MediaPlayer = ({
   shouldPauseVideo,
   isVideoPlaying,
   setIsVideoPlaying,
+  initialFullscreen = false,
+  onFullscreenChange,
+  seasonNumber,
+  episodeNumber,
+  episodeTitle,
+  initialSeekTime = 0,
 }) => {
+  const dispatch = useDispatch();
   const [controlsHide, setControlsHide] = React.useState(false);
   const [playing, setPlaying] = React.useState(true);
   const [paused, setPaused] = React.useState(false);
   const [currentPosition, setCurrentPosition] = React.useState(0);
   const [duration, setDuration] = React.useState(0);
-  const [currentTime, setCurrentTime] = React.useState(0);
-  const [fullscreen, setFullscreen] = React.useState(false);
+  const [currentTime, setCurrentTime] = React.useState(initialSeekTime);
+  const [fullscreen, setFullscreen] = React.useState(initialFullscreen);
   const [resize, setResize] = React.useState(1);
   const [isReadyNext, setIsReadyNext] = React.useState(false);
   const videoHeight = useSharedValue(sizes.width * (9 / 16));
   const isFullScreen = useSharedValue(false);
   const client = useRemoteMediaClient();
   const devices = useDevices();
+  const [hasSeekInitial, setHasSeekInitial] = React.useState(false);
+  const videoRef = React.useRef(null);
+  const currentPositionRef = React.useRef(currentPosition);
+  const durationRef = React.useRef(duration);
+
+  // Debug log for video prop changes
+  useEffect(() => {
+    console.log('MediaPlayer video prop changed:', {
+      video,
+      hasVideo: !!video,
+      videoType: typeof video,
+      status
+    });
+  }, [video, status]);
+
+  // Update refs when values change
+  useEffect(() => {
+    currentPositionRef.current = currentPosition;
+  }, [currentPosition]);
+
+  useEffect(() => {
+    durationRef.current = duration;
+  }, [duration]);
+
+  // Seek to initial time when video loads
+  useEffect(() => {
+    if (initialSeekTime > 0 && duration > 0 && !hasSeekInitial && videoRef.current) {
+      videoRef.current.seek(initialSeekTime);
+      setCurrentTime(initialSeekTime);
+      setCurrentPosition(initialSeekTime);
+      setHasSeekInitial(true);
+    }
+  }, [initialSeekTime, duration, hasSeekInitial]);
+
+  // Save continue watching progress periodically
+  useEffect(() => {
+    const saveInterval = setInterval(() => {
+      const pos = currentPositionRef.current;
+      const dur = durationRef.current;
+      
+      if (dur > 0 && pos > 10 && pos < dur - 30) {
+        console.log('Saving continue watching progress...', pos, dur);
+        // Only save if video has meaningful progress (more than 10 seconds watched and not near the end)
+        const watchData = {
+          id: movie.id,
+          title: movie.title || title,
+          type: type || movie.type || 'movie',
+          poster: movie.image || imageUrl,
+          progress: pos,
+          duration: dur,
+          overview: movie.overview,
+        };
+
+        // Add TV show specific data
+        if (type === 'tv' && seasonNumber && episodeNumber) {
+          watchData.seasonNumber = seasonNumber;
+          watchData.episodeNumber = episodeNumber;
+          watchData.episodeTitle = episodeTitle;
+        }
+
+        dispatch(addOrUpdateItem(watchData));
+        
+        // Save to AsyncStorage
+        continueWatchingStorage.load().then(items => {
+          const existingIndex = items.findIndex(item => {
+            if (watchData.type === 'tv') {
+              return item.id === watchData.id && 
+                     item.seasonNumber === watchData.seasonNumber && 
+                     item.episodeNumber === watchData.episodeNumber;
+            }
+            return item.id === watchData.id;
+          });
+
+          if (existingIndex !== -1) {
+            items[existingIndex] = watchData;
+          } else {
+            items.unshift(watchData);
+          }
+
+          // Keep only last 20 items
+          if (items.length > 20) {
+            items = items.slice(0, 20);
+          }
+
+          continueWatchingStorage.save(items);
+        });
+      }
+    }, 10000); // Save every 10 seconds
+
+    return () => clearInterval(saveInterval);
+  }, [movie, title, type, imageUrl, dispatch, seasonNumber, episodeNumber, episodeTitle]);
+
+  // Restore fullscreen state when component mounts if needed
+  useEffect(() => {
+    if (initialFullscreen) {
+      Orientation.lockToLandscape();
+      Immersive.setImmersive(true);
+      StatusBar.setHidden(true, 'fade');
+      setFullscreen(true);
+    } else {
+      Orientation.lockToPortrait();
+    }
+    
+    return () => {
+      // Only reset to portrait if not in fullscreen mode
+      if (!fullscreen) {
+        Orientation.lockToPortrait();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (client) {
@@ -133,10 +253,12 @@ const MediaPlayer = ({
   };
 
   const handleLoad = ({duration: mediaDuration}) => {
+    console.log('Video loaded successfully, duration:', mediaDuration);
     setDuration(mediaDuration);
   };
 
   const onPlay = () => {
+    console.log('MediaPlayer onPlay called, video URL:', video);
     setPlaying(true);
     if (setIsVideoPlaying) {
       setIsVideoPlaying(true);
@@ -162,22 +284,33 @@ const MediaPlayer = ({
   };
 
   const onSeek = value => {
+    if (videoRef.current) {
+      videoRef.current.seek(value);
+    }
     setCurrentTime(value);
     setCurrentPosition(value);
     onPlay();
   };
 
   const onFullscreen = () => {
-    if (fullscreen) {
-      Orientation.lockToPortrait();
-      Immersive.setImmersive(!fullscreen);
-      StatusBar.setHidden(false, 'fade');
-    } else {
+    const newFullscreenState = !fullscreen;
+    
+    if (newFullscreenState) {
       Orientation.lockToLandscape();
-      Immersive.setImmersive(!fullscreen);
+      Immersive.setImmersive(true);
       StatusBar.setHidden(true, 'fade');
+    } else {
+      Orientation.lockToPortrait();
+      Immersive.setImmersive(false);
+      StatusBar.setHidden(false, 'fade');
     }
-    setFullscreen(!fullscreen);
+    
+    setFullscreen(newFullscreenState);
+    
+    // Notify parent component of fullscreen change
+    if (onFullscreenChange) {
+      onFullscreenChange(newFullscreenState);
+    }
   };
 
   const onResize = () => {
@@ -268,6 +401,27 @@ const MediaPlayer = ({
       />
     );
   } else {
+    // Don't render Video component if we don't have a valid video URL
+    if (!video || typeof video !== 'string') {
+      console.warn('MediaPlayer: Invalid or missing video URL:', video);
+      return (
+        <View
+          style={{
+            zIndex: fullscreen ? 10 : 1,
+            height: fullscreen ? sizes.width : sizes.height * 0.3,
+            width: fullscreen ? sizes.height : sizes.width,
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'black',
+          }}>
+          <Text style={{ color: 'white', fontSize: 16 }}>
+            {status === 'loading' ? 'Loading video...' : 'No video available'}
+          </Text>
+        </View>
+      );
+    }
+
     return (
       <View
         style={{
@@ -277,14 +431,11 @@ const MediaPlayer = ({
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'space-between',
-          backgrounImage: imageUrl,
-        }}
-        activeOpacity={1}
-        onPress={() => {
-          setControlsHide(!controlsHide);
+          backgroundColor: 'black',
         }}>
         <Video
-          source={{
+          ref={videoRef}
+          source={video ? {
             uri: video,
             headers: {
               'User-Agent':
@@ -292,7 +443,7 @@ const MediaPlayer = ({
               Referer: 'https://www.vidfast.pro/',
               Origin: 'https://www.vidfast.pro',
             },
-          }}
+          } : null}
           rate={1.0}
           style={{
             position: 'absolute',
@@ -302,22 +453,28 @@ const MediaPlayer = ({
             right: 0,
             height: fullscreen ? sizes.width : sizes.height * 0.3,
             width: fullscreen ? sizes.height : sizes.width,
+            backgroundColor: 'black',
           }}
           // selectedAudioTrack={0}
           onLoad={handleLoad}
-          seek={currentTime}
           resizeMode={['none', 'contain', 'cover', 'stretch'][resize]}
-          onBuffer={() => {
-            setStatus('loading');
+          onBuffer={({isBuffering}) => {
+            console.log('Video buffering:', isBuffering);
+            if (isBuffering) {
+              setStatus('loading');
+            }
           }}
           poster={imageUrl}
           posterResizeMode="cover"
           controls={false}
           repeat={true}
-          onError={() => {}}
+          onError={(error) => {
+            console.error('Video playback error:', error);
+            setStatus('error');
+          }}
           muted={false}
           paused={!playing}
-          hideShutterView={true}
+          hideShutterView={false}
           onSeek={({currentTime: time}) => {
             setCurrentTime(time);
           }}
@@ -328,7 +485,7 @@ const MediaPlayer = ({
               title: title,
               language: 'en',
               type: TextTrackType.SRT,
-              uri: subtitle,
+              uri: subtitle || '',
             },
           ]}
           selectedTextTrack={{type: 'language', value: 'en'}}
@@ -337,6 +494,7 @@ const MediaPlayer = ({
           title={title}
           hide={controlsHide}
           onHide={() => setControlsHide(!controlsHide)}
+          setHide={setControlsHide}
           onPause={onPause}
           onPlay={onPlay}
           movie={movie}

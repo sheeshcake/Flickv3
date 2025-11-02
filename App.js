@@ -10,11 +10,16 @@ import Tabs from '~/navigation/Tabs';
 import { store } from '~/redux/store'
 import { Provider } from 'react-redux'
 import Test from './src/screens/Test';
+import Orientation from 'react-native-orientation-locker';
 
 const Stack = createStackNavigator();
 
 const App = () => {
 
+  // Lock to portrait on app startup
+  React.useEffect(() => {
+    Orientation.lockToPortrait();
+  }, []);
 
   return (
     <Provider store={store}>

@@ -1,4 +1,4 @@
-import { View, Text, ActivityIndicator } from 'react-native'
+import { View, Text, ActivityIndicator, TouchableWithoutFeedback, Animated } from 'react-native'
 import React, { useState, useEffect, useRef } from 'react'
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import Slider from '@react-native-community/slider'
@@ -9,6 +9,7 @@ import Orientation from 'react-native-orientation-locker';
 
 const Controls = ({
     hide,
+    setHide,
     title,
     link,
     movie,
@@ -39,6 +40,11 @@ const Controls = ({
     const [status, setStatus] = useState(status);
     const [isReadyNext, setIsReadyNext] = useState(false);
     const [loading, setLoading] = useState('Loading...');
+    const [showSeekIndicator, setShowSeekIndicator] = useState(null);
+    const lastTapLeft = useRef(null);
+    const lastTapRight = useRef(null);
+    const hideControlsTimeout = useRef(null);
+    const fadeAnim = useRef(new Animated.Value(1)).current;
     const getRandomNumber = () => {
         const randomNumber = Math.floor(Math.random() * loadingMessage.default.length) + 1;
         return randomNumber
@@ -51,6 +57,76 @@ const Controls = ({
             }
         }, 3000)
     }
+
+    // Auto-hide controls
+    const resetAutoHide = () => {
+        if (hideControlsTimeout.current) {
+            clearTimeout(hideControlsTimeout.current);
+        }
+        
+        if (!hide) {
+            hideControlsTimeout.current = setTimeout(() => {
+                onHide();
+            }, 3000);
+        }
+    };
+
+    useEffect(() => {
+        if (!hide && playing) {
+            resetAutoHide();
+        }
+        return () => {
+            if (hideControlsTimeout.current) {
+                clearTimeout(hideControlsTimeout.current);
+            }
+        };
+    }, [hide, playing]);
+
+    // Handle double tap on left side
+    const handleLeftTap = () => {
+        const now = Date.now();
+        const DOUBLE_TAP_DELAY = 300;
+
+        if (lastTapLeft.current && now - lastTapLeft.current < DOUBLE_TAP_DELAY) {
+            // Double tap detected
+            const newPosition = Math.max(0, currentPosition - 5);
+            onSeek(newPosition);
+            setShowSeekIndicator('left');
+            setTimeout(() => setShowSeekIndicator(null), 500);
+            lastTapLeft.current = null;
+            setHide(false);
+        } else {
+            lastTapLeft.current = now;
+            setTimeout(() => {
+                lastTapLeft.current = null;
+            }, DOUBLE_TAP_DELAY);
+            onHide();
+        }
+        resetAutoHide();
+    };
+
+    // Handle double tap on right side
+    const handleRightTap = () => {
+        const now = Date.now();
+        const DOUBLE_TAP_DELAY = 300;
+
+        if (lastTapRight.current && now - lastTapRight.current < DOUBLE_TAP_DELAY) {
+            // Double tap detected
+            const newPosition = Math.min(duration, currentPosition + 5);
+            onSeek(newPosition);
+            setShowSeekIndicator('right');
+            setTimeout(() => setShowSeekIndicator(null), 500);
+            lastTapRight.current = null;
+            setHide(false);
+        } else {
+            lastTapRight.current = now;
+            setTimeout(() => {
+                lastTapRight.current = null;
+            }, DOUBLE_TAP_DELAY);
+            onHide();
+        }
+        resetAutoHide();
+    };
 
     useEffect(() => {
         const result = new Date(currentPosition * 1000).toISOString().substr(11, 8);
@@ -82,6 +158,7 @@ const Controls = ({
                 width: fullscreen ? sizes.height : sizes.width,
                 height: fullscreen ? sizes.width : sizes.height * 0.3,
             }}
+            pointerEvents="box-none"
         >
             <View
                 style={{
@@ -93,6 +170,7 @@ const Controls = ({
                     width: fullscreen ? sizes.height : sizes.width,
                     backgroundColor: colors.transparentBlack,
                 }}
+                pointerEvents={hide ? "none" : "auto"}
             >
                 <TouchableOpacity
                     onPress={() => {
@@ -126,53 +204,106 @@ const Controls = ({
                 </Text>
                 {upperRightComponent}
             </View>
-            <TouchableOpacity
-                activeOpacity={1}
-                onPress={() => {
-                    onHide()
-                }}
+            <View
                 style={{
                     height: sizes.height * 0.2,
+                    flexDirection: 'row',
                     alignItems: 'center',
                     justifyContent: 'center',
                 }}
+                pointerEvents="box-none"
             >
-                <View
-                    style={{
+                {/* Left side double tap area */}
+                <TouchableWithoutFeedback onPress={handleLeftTap}>
+                    <View style={{ 
+                        flex: 1, 
+                        height: '100%', 
+                        justifyContent: 'center', 
                         alignItems: 'center',
-                        justifyContent: 'center',
+                        backgroundColor: 'transparent',
+                    }}>
+                        {showSeekIndicator === 'left' && (
+                            <View style={{ alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)', padding: 10, borderRadius: 8 }}>
+                                <Icon
+                                    name="rewind-5"
+                                    size={sizes.width * 0.12}
+                                    color={colors.white}
+                                />
+                                <Text style={{ color: colors.white, fontSize: 14, marginTop: 5, fontWeight: 'bold' }}>-5s</Text>
+                            </View>
+                        )}
+                    </View>
+                </TouchableWithoutFeedback>
+
+                {/* Center content */}
+                <TouchableWithoutFeedback
+                    onPress={() => {
+                        onHide();
+                        resetAutoHide();
                     }}
                 >
-                    {
-                        status == "loading" ? (
-                            <>
-                                <ActivityIndicator size="large" color={colors.red} />
-                                <View
-                                    style={{
-                                        width: '50%',
-                                        alignItems: 'center',
-                                    }}
-                                >
-                                    <Text
+                    <View
+                        style={{
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flex: 1,
+                            height: '100%',
+                            backgroundColor: 'transparent',
+                        }}
+                    >
+                        {
+                            status == "loading" ? (
+                                <>
+                                    <ActivityIndicator size="large" color={colors.red} />
+                                    <View
                                         style={{
-                                            color: colors.white,
-                                            fontSize: 14,
-                                            textAlign: 'center',
+                                            width: '50%',
+                                            alignItems: 'center',
                                         }}
                                     >
-                                        {loading}
-                                    </Text>
-                                </View>
-                            </>
-                        ) : status == "error" ? (
-                            <Text style={{ color: colors.white, fontSize: 20, fontWeight: 'bold' }}>No Video Available :(</Text>
-                        ) : (
-                            // ADD more Controls HERE
-                            <></>
-                        )
-                    }
-                </View>
-            </TouchableOpacity>
+                                        <Text
+                                            style={{
+                                                color: colors.white,
+                                                fontSize: 14,
+                                                textAlign: 'center',
+                                            }}
+                                        >
+                                            {loading}
+                                        </Text>
+                                    </View>
+                                </>
+                            ) : status == "error" ? (
+                                <Text style={{ color: colors.white, fontSize: 20, fontWeight: 'bold' }}>No Video Available :(</Text>
+                            ) : (
+                                // ADD more Controls HERE
+                                <></>
+                            )
+                        }
+                    </View>
+                </TouchableWithoutFeedback>
+
+                {/* Right side double tap area */}
+                <TouchableWithoutFeedback onPress={handleRightTap}>
+                    <View style={{ 
+                        flex: 1, 
+                        height: '100%', 
+                        justifyContent: 'center', 
+                        alignItems: 'center',
+                        backgroundColor: 'transparent',
+                    }}>
+                        {showSeekIndicator === 'right' && (
+                            <View style={{ alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)', padding: 10, borderRadius: 8 }}>
+                                <Icon
+                                    name="fast-forward-5"
+                                    size={sizes.width * 0.12}
+                                    color={colors.white}
+                                />
+                                <Text style={{ color: colors.white, fontSize: 14, marginTop: 5, fontWeight: 'bold' }}>+5s</Text>
+                            </View>
+                        )}
+                    </View>
+                </TouchableWithoutFeedback>
+            </View>
             <View
                 style={{
                     opacity: hide || status == "error" ? 0 : 1,
@@ -183,6 +314,7 @@ const Controls = ({
                     backgroundColor: colors.transparentBlack,
                     alignItems: 'center',
                 }}
+                pointerEvents={hide || status === "error" ? "none" : "auto"}
             >
                 <TouchableOpacity
                     onPress={() => {
@@ -213,8 +345,16 @@ const Controls = ({
                     thumbTintColor={colors.red}
                     maximumTrackTintColor={colors.light}
                     minimumTrackTintColor={colors.red}
-                    onSlidingStart={() => onPause()}
-                    onSlidingComplete={value => onSeek(value)}
+                    onSlidingStart={() => {
+                        onPause();
+                        if (hideControlsTimeout.current) {
+                            clearTimeout(hideControlsTimeout.current);
+                        }
+                    }}
+                    onSlidingComplete={value => {
+                        onSeek(value);
+                        resetAutoHide();
+                    }}
                 />
                 <Text>{time}</Text>
                 {
@@ -253,10 +393,11 @@ const Controls = ({
             <View
                 style={{
                     position: 'absolute',
-                    left: sizes.height * 0.8,
-                    bottom: sizes.height - (sizes.height * 0.94),
+                    right: sizes.width * 0.05,
+                    bottom: sizes.width * 0.15,
                     alignItems: 'center',
                     justifyContent: 'flex-end',
+                    zIndex: 100,
                 }}
             >
                 {(isReadyNext && fullscreen) &&
@@ -269,7 +410,10 @@ const Controls = ({
                             borderRadius: 5,
                             alignItems: 'center',
                         }}
-                        onPress={onNext}
+                        onPress={() => {
+                            // Call onNext without affecting fullscreen state
+                            onNext && onNext();
+                        }}
                     >
                         <Icon
                             name="fast-forward"

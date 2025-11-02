@@ -130,6 +130,8 @@ const Splash = ({ navigation }) => {
         try {
             const value = await AsyncStorage.getItem('userProfile')
             console.log(value)
+            const continueWatching = await AsyncStorage.getItem('@continue_watching')
+            console.log(continueWatching)
             if (value) {
                 const userData = JSON.parse(value) || []
                 dispatch(getprofileData(userData))

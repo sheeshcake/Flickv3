@@ -139,7 +139,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "1.7.4"
+        versionName "1.8.0"
         buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
 
         if (isNewArchitectureEnabled()) {
@@ -313,6 +313,17 @@ task copyDownloadableDepsToLibs(type: Copy) {
 }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
+
+// Fix for task dependency issues
+afterEvaluate {
+    // Fix compress assets dependency
+    tasks.matching { it.name == 'compressReleaseAssets' }.configureEach {
+        it.dependsOn('copyReleaseBundledJs')
+    }
+    tasks.matching { it.name == 'compressDebugAssets' }.configureEach {
+        it.dependsOn('copyDebugBundledJs')
+    }
+}
 
 def isNewArchitectureEnabled() {
     // To opt-in for the New Architecture, you can either:

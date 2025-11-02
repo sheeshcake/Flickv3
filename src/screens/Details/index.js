@@ -27,7 +27,7 @@ import { useSelector } from 'react-redux';
 
 const Details = ({ navigation, route }) => {
   const { player_type } = useSelector(state => state.profile);
-  const { movie } = route.params;
+  const { movie, continueWatchingData } = route.params;
 
   // State management
   const [video, setVideo] = useState(null);
@@ -45,6 +45,8 @@ const Details = ({ navigation, route }) => {
   const [isVideoPlaying, setIsVideoPlaying] = useState(true);
   const [shouldPauseVideo, setShouldPauseVideo] = useState(false);
   const [serverName, setServerName] = useState('');
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [initialSeekTime, setInitialSeekTime] = useState(0);
 
   // Animation for pulsing logo
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -63,14 +65,20 @@ const Details = ({ navigation, route }) => {
   const getVideoVidking = async () => {
     try {
       setStatus('loading');
+      console.log('Loading video for movie ID:', movie.id);
       const videoData = await loadFlickVidking(movie.id);
+      console.log('Received video data:', videoData);
+      
       if (videoData?.sources?.[0]?.url) {
+        console.log('Setting scrapper URL:', videoData.sources[0].url);
         setScrapperUrl(videoData.sources[0].url);
         setShowWebViewScrapper(true);
       } else {
+        console.error('No video URL found in data:', videoData);
         setStatus('error');
       }
     } catch (error) {
+      console.error('Error loading video:', error);
       setStatus('error');
     }
   };
@@ -82,12 +90,36 @@ const Details = ({ navigation, route }) => {
 
       if (episodes?.length > 0 && episodes[0]?.episodes?.length > 0) {
         setSeasonData(episodes);
-        setEpisodeData(episodes[0].episodes);
-        setSelectedSeason(episodes[0]);
-        setSelectedEpisode(episodes[0].episodes[0]);
+        
+        // Check if we should resume from continue watching
+        let targetSeason = episodes[0];
+        let targetEpisode = episodes[0].episodes[0];
+        
+        if (continueWatchingData?.seasonNumber && continueWatchingData?.episodeNumber) {
+          // Find the season and episode from continue watching
+          const resumeSeason = episodes.find(s => 
+            (s.season_number || s.seasonNumber || s.season) === continueWatchingData.seasonNumber
+          );
+          
+          if (resumeSeason) {
+            const resumeEpisode = resumeSeason.episodes.find(e => 
+              (e.episode_number || e.episodeNumber || e.episode) === continueWatchingData.episodeNumber
+            );
+            
+            if (resumeEpisode) {
+              targetSeason = resumeSeason;
+              targetEpisode = resumeEpisode;
+              setInitialSeekTime(continueWatchingData.progress || 0);
+            }
+          }
+        }
+        
+        setEpisodeData(targetSeason.episodes);
+        setSelectedSeason(targetSeason);
+        setSelectedEpisode(targetEpisode);
 
-        // Load the first episode
-        await getEpisodeVideoVidking(episodes[0].episodes[0]);
+        // Load the target episode
+        await getEpisodeVideoVidking(targetEpisode);
       } else {
         setStatus('error');
       }
@@ -99,20 +131,26 @@ const Details = ({ navigation, route }) => {
   const getEpisodeVideoVidking = async episode => {
     try {
       setStatus('loading');
+      console.log('Loading episode video:', episode);
+      
       // Reset video and subtitle data for new episode
       setVideo(null);
       setSubtitle(null);
 
       const videoData = await loadSeriesEpisodeVidking(episode);
+      console.log('Episode video data received:', videoData);
 
       if (videoData?.sources?.[0]?.url) {
         const newUrl = videoData.sources[0].url;
+        console.log('Setting episode scrapper URL:', newUrl);
         setScrapperUrl(newUrl);
         setShowWebViewScrapper(true);
       } else {
+        console.error('No episode video URL found:', videoData);
         setStatus('error');
       }
     } catch (error) {
+      console.error('Error loading episode video:', error);
       setStatus('error');
     }
   };
@@ -147,11 +185,19 @@ const Details = ({ navigation, route }) => {
   // Handle WebViewScrapper data extraction - simplified
   const handleDataExtracted = data => {
     if (data?.video) {
-      if(status !== 'loading') return;
+      console.log('Data extracted from WebViewScrapper:', data);
+      console.log('Video URL:', data.video);
+      
+      // Validate video URL
+      if (!data.video || typeof data.video !== 'string') {
+        console.error('Invalid video URL received:', data.video);
+        setStatus('error');
+        return;
+      }
+      
       setVideo(data.video);
       setStatus('success');
       setShowWebViewScrapper(false);
-      console.log('Data extracted from WebViewScrapper:', data);
     }
 
     setIsVideoPlaying(true);
@@ -281,6 +327,11 @@ const Details = ({ navigation, route }) => {
       getVideoVidking();
       // Fetch wyzie subtitles for movies
       fetchWyzieSubtitles();
+      
+      // Set initial seek time for movies if available from continue watching
+      if (continueWatchingData?.progress) {
+        setInitialSeekTime(continueWatchingData.progress);
+      }
     }
   }, []);
 
@@ -431,6 +482,7 @@ const Details = ({ navigation, route }) => {
           />
         </View>
       ) : video && !showWebViewScrapper ? (
+        console.log('Rendering MediaPlayer with video:', video) ||
         <MediaPlayer
           title={movie.title}
           video={video}
@@ -446,6 +498,12 @@ const Details = ({ navigation, route }) => {
           shouldPauseVideo={shouldPauseVideo}
           isVideoPlaying={isVideoPlaying}
           setIsVideoPlaying={setIsVideoPlaying}
+          initialFullscreen={isFullscreen}
+          onFullscreenChange={setIsFullscreen}
+          seasonNumber={selectedSeason?.season_number || selectedSeason?.seasonNumber || selectedSeason?.season}
+          episodeNumber={selectedEpisode?.episode_number || selectedEpisode?.episodeNumber || selectedEpisode?.episode}
+          episodeTitle={selectedEpisode?.title || selectedEpisode?.name}
+          initialSeekTime={initialSeekTime}
           onNext={() => {
             const episodeIndex = episodeData?.findIndex(
               x => x.id === selectedEpisode?.id,
@@ -513,7 +571,15 @@ const Details = ({ navigation, route }) => {
             <Text style={{ color: colors.white }}>Retry</Text>
           </TouchableOpacity>
         </View>
-      ) : null}
+      ) : (
+        console.log('No render condition met:', { 
+          showWebViewScrapper, 
+          scrapperUrl, 
+          hasVideo: !!video, 
+          video,
+          status 
+        }) || null
+      )}
       <ScrollView
         showsVerticalScrollIndicator={false}
         style={{
