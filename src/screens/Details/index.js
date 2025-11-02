@@ -44,6 +44,7 @@ const Details = ({ navigation, route }) => {
   const [scrapperUrl, setScrapperUrl] = useState('');
   const [isVideoPlaying, setIsVideoPlaying] = useState(true);
   const [shouldPauseVideo, setShouldPauseVideo] = useState(false);
+  const [serverName, setServerName] = useState('');
 
   // Animation for pulsing logo
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -145,11 +146,12 @@ const Details = ({ navigation, route }) => {
 
   // Handle WebViewScrapper data extraction - simplified
   const handleDataExtracted = data => {
-    console.log('Data extracted from WebViewScrapper:', data);
     if (data?.video) {
+      if(status !== 'loading') return;
       setVideo(data.video);
       setStatus('success');
       setShowWebViewScrapper(false);
+      console.log('Data extracted from WebViewScrapper:', data);
     }
 
     setIsVideoPlaying(true);

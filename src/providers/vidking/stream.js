@@ -18,9 +18,9 @@ export const getStream = async function ({ tmdbId, type, season, episode, signal
     // Construct the Vidking embed URL based on content type
     let embedUrl = '';
     if (type === 'movie') {
-      embedUrl = `https://www.vidfast.net/embed/movie/${tmdbId}?autoPlay=true&subtitle=english`;
+      embedUrl = `https://www.vidfast.pro/embed/movie/${tmdbId}?autoPlay=true&subtitle=english`;
     } else if (type === 'tv') {
-      embedUrl = `https://www.vidfast.net/embed/tv/${tmdbId}/${season}/${episode}?autoPlay=true&subtitle=english`;
+      embedUrl = `https://www.vidfast.pro/embed/tv/${tmdbId}/${season}/${episode}?autoPlay=true&subtitle=english`;
     } else {
       console.error('Invalid content type');
       return [];
